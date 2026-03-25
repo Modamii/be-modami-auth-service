@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /mnt/c/Users/phongnc6/Personal/sources/Another/be-cenfit-auth-service/ -maxdepth 4 -not -path */vendor/* -not -path */.git/* -not -path */node_modules/*)",
+      "Bash(go mod:*)",
+      "Bash(go get:*)",
+      "Bash(go run:*)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(docker --version)",
+      "Bash(docker compose:*)",
+      "Bash(make run:*)",
+      "Bash(go install:*)",
+      "Bash(swag init:*)",
+      "Bash(timeout 3 ./bin/server)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8085/swagger/index.html)",
+      "Bash(netstat -tlnp)",
+      "Bash(env)",
+      "Bash(kill:*)"
+    ]
+  }
+}

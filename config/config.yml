@@ -1,0 +1,21 @@
+server:
+  port: 8085
+  shutdown_timeout: "15s"
+
+db:
+  url: "postgres://cenfit:cenfit@localhost:5432/cenfit_auth?sslmode=disable"
+  max_conns: 25
+  min_conns: 5
+
+keycloak:
+  base_url: "http://localhost:8180"
+  realm: "cenfit"
+  client_id: "cenfit-api"
+  client_secret: "bBNDVy0c5m1e7LyVC2aIaF6rrFqS4I5P"
+  admin_user: "admin"
+  admin_pass: "admin"
+  redirect_url: "http://localhost:8085/api/v1/auth/social/callback"
+
+log:
+  level: "info"
+  format: "console"

@@ -1,0 +1,727 @@
+basePath: /
+definitions:
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.ChangePasswordRequest:
+    properties:
+      new_password:
+        example: newSecret123
+        minLength: 8
+        type: string
+      old_password:
+        example: oldSecret123
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.ForgotPasswordRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+    required:
+    - email
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.KeycloakClaims:
+    properties:
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      family_name:
+        type: string
+      given_name:
+        type: string
+      name:
+        type: string
+      preferred_username:
+        type: string
+      realm_access:
+        $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RealmAccess'
+      resource_access:
+        additionalProperties:
+          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ResourceAccess'
+        type: object
+      sub:
+        type: string
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginRequest:
+    properties:
+      password:
+        example: secret123
+        type: string
+      username:
+        example: john
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.LogoutRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.RealmAccess:
+    properties:
+      roles:
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      password:
+        example: secret123
+        minLength: 8
+        type: string
+      username:
+        example: john
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterResponse:
+    properties:
+      user_id:
+        type: string
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.ResourceAccess:
+    properties:
+      roles:
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.SocialLoginResponse:
+    properties:
+      auth_url:
+        type: string
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.UpdateProfileRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_internal_entity.User:
+    properties:
+      email:
+        type: string
+      enabled:
+        type: boolean
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      preferred_username:
+        type: string
+    type: object
+  github_com_cenfit_be-cenfit-auth-service_pkg_response.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+    type: object
+  gocloak.CompositesRepresentation:
+    properties:
+      client:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      realm:
+        items:
+          type: string
+        type: array
+    type: object
+  gocloak.Role:
+    properties:
+      attributes:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      clientRole:
+        type: boolean
+      composite:
+        type: boolean
+      composites:
+        $ref: '#/definitions/gocloak.CompositesRepresentation'
+      containerId:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      scopeParamRequired:
+        type: boolean
+    type: object
+  internal_delivery_http_handler.assignRolesRequest:
+    properties:
+      roles:
+        items:
+          $ref: '#/definitions/gocloak.Role'
+        type: array
+    required:
+    - roles
+    type: object
+host: localhost:8085
+info:
+  contact: {}
+  description: Authentication service powered by Keycloak
+  title: Cenfit Auth Service API
+  version: "1.0"
+paths:
+  /api/v1/admin/roles:
+    get:
+      description: Returns all realm roles from Keycloak (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: List realm roles
+      tags:
+      - admin
+  /api/v1/admin/users:
+    get:
+      description: Returns a list of users from Keycloak (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.User'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - admin
+  /api/v1/admin/users/{id}:
+    get:
+      description: Returns a specific user from Keycloak (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - admin
+  /api/v1/admin/users/{id}/roles:
+    delete:
+      consumes:
+      - application/json
+      description: Remove realm roles from a specific user (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Roles to remove
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http_handler.assignRolesRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove roles from user
+      tags:
+      - admin
+    get:
+      description: Returns realm roles assigned to a specific user (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user roles
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: Assign realm roles to a specific user (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Roles to assign
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http_handler.assignRolesRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: Assign roles to user
+      tags:
+      - admin
+  /api/v1/auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send a password reset email to the user
+      parameters:
+      - description: User email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      summary: Forgot password
+      tags:
+      - auth
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with username and password, returns JWT tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      summary: User login
+      tags:
+      - auth
+  /api/v1/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate refresh token to end the session
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      summary: Logout user
+      tags:
+      - auth
+  /api/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Exchange refresh token for a new access token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      summary: Refresh access token
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account in Keycloak
+      parameters:
+      - description: Registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      summary: Register new user
+      tags:
+      - auth
+  /api/v1/auth/social/callback:
+    get:
+      description: Exchanges the authorization code from Keycloak for JWT tokens
+      parameters:
+      - description: Authorization code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      summary: Social login callback
+      tags:
+      - auth
+  /api/v1/auth/social/login:
+    get:
+      description: Returns the Keycloak authorization URL for the given social provider
+      parameters:
+      - description: Social provider (google, facebook, github)
+        in: query
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.SocialLoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      summary: Social login
+      tags:
+      - auth
+  /api/v1/me:
+    get:
+      description: Returns the authenticated user's claims from JWT token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.KeycloakClaims'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - user
+  /api/v1/me/password:
+    put:
+      consumes:
+      - application/json
+      description: Change the authenticated user's password
+      parameters:
+      - description: Password change data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: Change password
+      tags:
+      - user
+  /api/v1/me/profile:
+    put:
+      consumes:
+      - application/json
+      description: Update the authenticated user's profile information
+      parameters:
+      - description: Profile data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update profile
+      tags:
+      - user
+  /healthz:
+    get:
+      description: Returns 200 if the service is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Liveness check
+      tags:
+      - health
+  /readyz:
+    get:
+      description: Returns 200 if all dependencies (DB, Keycloak) are healthy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Readiness check
+      tags:
+      - health
+securityDefinitions:
+  BearerAuth:
+    description: 'Enter your bearer token: **Bearer &lt;token&gt;**'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
