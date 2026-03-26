@@ -1151,7 +1151,7 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "description": "Enter your bearer token: **Bearer \u0026lt;token\u0026gt;**",
+            "description": "Enter your token in the format: **Bearer {token}**",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

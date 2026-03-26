@@ -205,7 +205,6 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code string) (*
 }
 
 func (uc *AuthKeycloakUseCase) ChangePassword(ctx context.Context, userID, oldPassword, newPassword string) error {
-	// Verify old password by attempting login with the user's username
 	_, err := uc.client.Login(ctx, uc.cfg.ClientID, uc.cfg.ClientSecret, uc.cfg.Realm, userID, oldPassword)
 	if err != nil {
 		return entity.NewAppError(401, "old password is incorrect", err)

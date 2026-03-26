@@ -720,7 +720,7 @@ paths:
       - health
 securityDefinitions:
   BearerAuth:
-    description: 'Enter your bearer token: **Bearer &lt;token&gt;**'
+    description: 'Enter your token in the format: **Bearer {token}**'
     in: header
     name: Authorization
     type: apiKey

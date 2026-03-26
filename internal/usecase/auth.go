@@ -26,9 +26,10 @@ func NewAuthUseCase(ctx context.Context, issuerURL, clientID string, logger *zap
 		return nil, fmt.Errorf("oidc provider: %w", err)
 	}
 
-	cfg := &oidc.Config{ClientID: clientID}
-	if clientID == "" {
-		cfg.SkipClientIDCheck = true
+	cfg := &oidc.Config{
+		ClientID:                       clientID,
+		SkipClientIDCheck:              true,
+		InsecureSkipSignatureCheck:     false,
 	}
 
 	return &AuthUseCase{

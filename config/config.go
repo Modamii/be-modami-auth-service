@@ -9,10 +9,22 @@ import (
 )
 
 type Config struct {
+	App      AppConfig      `mapstructure:"app"`
 	Server   ServerConfig   `mapstructure:"server"`
 	DB       DBConfig       `mapstructure:"db"`
 	Keycloak KeycloakConfig `mapstructure:"keycloak"`
 	Log      LogConfig      `mapstructure:"log"`
+	Kafka    KafkaConfig    `mapstructure:"kafka"`
+}
+
+type AppConfig struct {
+	Environment string `mapstructure:"environment"`
+}
+
+type KafkaConfig struct {
+	Brokers         []string `mapstructure:"brokers"`
+	ClientID        string   `mapstructure:"client_id"`
+	ConsumerGroupID string   `mapstructure:"consumer_group_id"`
 }
 
 type ServerConfig struct {

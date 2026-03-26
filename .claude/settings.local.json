@@ -16,7 +16,8 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8085/swagger/index.html)",
       "Bash(netstat -tlnp)",
       "Bash(env)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(make swagger:*)"
     ]
   }
 }
