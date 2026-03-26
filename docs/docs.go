@@ -34,19 +34,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -73,7 +73,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                                    "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                                 },
                                 {
                                     "type": "object",
@@ -81,7 +81,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.User"
+                                                "$ref": "#/definitions/be-modami-auth-service_internal_entity.User"
                                             }
                                         }
                                     }
@@ -92,13 +92,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -134,13 +134,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                                    "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.User"
+                                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.User"
                                         }
                                     }
                                 }
@@ -150,13 +150,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -190,19 +190,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -249,13 +249,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -302,13 +302,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -334,7 +334,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ForgotPasswordRequest"
+                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.ForgotPasswordRequest"
                         }
                     }
                 ],
@@ -342,13 +342,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -374,7 +374,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginRequest"
+                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.LoginRequest"
                         }
                     }
                 ],
@@ -384,13 +384,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                                    "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse"
+                                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.LoginResponse"
                                         }
                                     }
                                 }
@@ -400,7 +400,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -426,7 +426,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LogoutRequest"
+                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.LogoutRequest"
                         }
                     }
                 ],
@@ -437,7 +437,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -463,7 +463,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RefreshRequest"
+                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.RefreshRequest"
                         }
                     }
                 ],
@@ -473,13 +473,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                                    "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse"
+                                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.LoginResponse"
                                         }
                                     }
                                 }
@@ -489,7 +489,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -515,7 +515,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterRequest"
+                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.RegisterRequest"
                         }
                     }
                 ],
@@ -525,13 +525,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                                    "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterResponse"
+                                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.RegisterResponse"
                                         }
                                     }
                                 }
@@ -541,13 +541,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -578,13 +578,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                                    "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse"
+                                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.LoginResponse"
                                         }
                                     }
                                 }
@@ -594,7 +594,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -625,13 +625,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                                    "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.SocialLoginResponse"
+                                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.SocialLoginResponse"
                                         }
                                     }
                                 }
@@ -641,7 +641,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -668,13 +668,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                                    "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.KeycloakClaims"
+                                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.KeycloakClaims"
                                         }
                                     }
                                 }
@@ -684,7 +684,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -715,7 +715,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ChangePasswordRequest"
+                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.ChangePasswordRequest"
                         }
                     }
                 ],
@@ -726,7 +726,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -757,7 +757,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.UpdateProfileRequest"
+                            "$ref": "#/definitions/be-modami-auth-service_internal_entity.UpdateProfileRequest"
                         }
                     }
                 ],
@@ -768,13 +768,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response"
+                            "$ref": "#/definitions/be-modami-auth-service_pkg_response.Response"
                         }
                     }
                 }
@@ -837,7 +837,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.ChangePasswordRequest": {
+        "be-modami-auth-service_internal_entity.ChangePasswordRequest": {
             "type": "object",
             "required": [
                 "new_password",
@@ -855,7 +855,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.ForgotPasswordRequest": {
+        "be-modami-auth-service_internal_entity.ForgotPasswordRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -867,7 +867,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.KeycloakClaims": {
+        "be-modami-auth-service_internal_entity.KeycloakClaims": {
             "type": "object",
             "properties": {
                 "email": {
@@ -889,12 +889,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "realm_access": {
-                    "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RealmAccess"
+                    "$ref": "#/definitions/be-modami-auth-service_internal_entity.RealmAccess"
                 },
                 "resource_access": {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": "#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ResourceAccess"
+                        "$ref": "#/definitions/be-modami-auth-service_internal_entity.ResourceAccess"
                     }
                 },
                 "sub": {
@@ -902,7 +902,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginRequest": {
+        "be-modami-auth-service_internal_entity.LoginRequest": {
             "type": "object",
             "required": [
                 "password",
@@ -919,7 +919,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse": {
+        "be-modami-auth-service_internal_entity.LoginResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -936,7 +936,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.LogoutRequest": {
+        "be-modami-auth-service_internal_entity.LogoutRequest": {
             "type": "object",
             "required": [
                 "refresh_token"
@@ -947,7 +947,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.RealmAccess": {
+        "be-modami-auth-service_internal_entity.RealmAccess": {
             "type": "object",
             "properties": {
                 "roles": {
@@ -958,7 +958,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.RefreshRequest": {
+        "be-modami-auth-service_internal_entity.RefreshRequest": {
             "type": "object",
             "required": [
                 "refresh_token"
@@ -969,7 +969,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterRequest": {
+        "be-modami-auth-service_internal_entity.RegisterRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -1000,7 +1000,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterResponse": {
+        "be-modami-auth-service_internal_entity.RegisterResponse": {
             "type": "object",
             "properties": {
                 "user_id": {
@@ -1008,7 +1008,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.ResourceAccess": {
+        "be-modami-auth-service_internal_entity.ResourceAccess": {
             "type": "object",
             "properties": {
                 "roles": {
@@ -1019,7 +1019,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.SocialLoginResponse": {
+        "be-modami-auth-service_internal_entity.SocialLoginResponse": {
             "type": "object",
             "properties": {
                 "auth_url": {
@@ -1027,7 +1027,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.UpdateProfileRequest": {
+        "be-modami-auth-service_internal_entity.UpdateProfileRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -1044,7 +1044,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_internal_entity.User": {
+        "be-modami-auth-service_internal_entity.User": {
             "type": "object",
             "properties": {
                 "email": {
@@ -1067,7 +1067,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_cenfit_be-cenfit-auth-service_pkg_response.Response": {
+        "be-modami-auth-service_pkg_response.Response": {
             "type": "object",
             "properties": {
                 "data": {},

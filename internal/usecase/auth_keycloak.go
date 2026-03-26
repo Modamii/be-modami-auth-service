@@ -9,8 +9,9 @@ import (
 	"net/url"
 	"strings"
 
+	"be-modami-auth-service/internal/entity"
+
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/cenfit/be-cenfit-auth-service/internal/entity"
 	"go.uber.org/zap"
 )
 
@@ -154,7 +155,7 @@ func (uc *AuthKeycloakUseCase) SocialLoginURL(provider string) (*entity.SocialLo
 		url.QueryEscape(provider),
 	)
 
-	return &entity.SocialLoginResponse{AuthURL: authURL}, nil 
+	return &entity.SocialLoginResponse{AuthURL: authURL}, nil
 }
 
 func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code string) (*entity.LoginResponse, error) {

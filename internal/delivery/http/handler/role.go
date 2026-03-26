@@ -3,10 +3,11 @@ package handler
 import (
 	"net/http"
 
+	"be-modami-auth-service/internal/entity"
+	"be-modami-auth-service/internal/usecase"
+	"be-modami-auth-service/pkg/response"
+
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/cenfit/be-cenfit-auth-service/internal/entity"
-	"github.com/cenfit/be-cenfit-auth-service/internal/usecase"
-	"github.com/cenfit/be-cenfit-auth-service/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 

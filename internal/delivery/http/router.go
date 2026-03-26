@@ -1,15 +1,16 @@
 package http
 
 import (
-	"github.com/cenfit/be-cenfit-auth-service/internal/delivery/http/handler"
-	"github.com/cenfit/be-cenfit-auth-service/internal/delivery/http/middleware"
-	"github.com/cenfit/be-cenfit-auth-service/internal/usecase"
+	"be-modami-auth-service/internal/delivery/http/handler"
+	"be-modami-auth-service/internal/delivery/http/middleware"
+	"be-modami-auth-service/internal/usecase"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 
-	_ "github.com/cenfit/be-cenfit-auth-service/docs"
+	_ "be-modami-auth-service/docs"
 )
 
 type RouterDeps struct {

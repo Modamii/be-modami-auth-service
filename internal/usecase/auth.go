@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cenfit/be-cenfit-auth-service/internal/entity"
+	"be-modami-auth-service/internal/entity"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"go.uber.org/zap"
 )

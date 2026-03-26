@@ -4,7 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/cenfit/be-cenfit-auth-service/internal/entity"
+	"be-modami-auth-service/internal/entity"
+
 	"github.com/gin-gonic/gin"
 )
 

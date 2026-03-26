@@ -1,4 +1,4 @@
-module github.com/cenfit/be-cenfit-auth-service
+module be-modami-auth-service
 
 go 1.25.4
 

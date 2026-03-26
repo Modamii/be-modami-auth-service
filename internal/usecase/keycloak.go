@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"be-modami-auth-service/internal/entity"
+
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/cenfit/be-cenfit-auth-service/internal/entity"
 	"go.uber.org/zap"
 )
 

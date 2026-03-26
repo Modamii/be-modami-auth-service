@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.ChangePasswordRequest:
+  be-modami-auth-service_internal_entity.ChangePasswordRequest:
     properties:
       new_password:
         example: newSecret123
@@ -13,7 +13,7 @@ definitions:
     - new_password
     - old_password
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.ForgotPasswordRequest:
+  be-modami-auth-service_internal_entity.ForgotPasswordRequest:
     properties:
       email:
         example: john@example.com
@@ -21,7 +21,7 @@ definitions:
     required:
     - email
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.KeycloakClaims:
+  be-modami-auth-service_internal_entity.KeycloakClaims:
     properties:
       email:
         type: string
@@ -36,15 +36,15 @@ definitions:
       preferred_username:
         type: string
       realm_access:
-        $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RealmAccess'
+        $ref: '#/definitions/be-modami-auth-service_internal_entity.RealmAccess'
       resource_access:
         additionalProperties:
-          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ResourceAccess'
+          $ref: '#/definitions/be-modami-auth-service_internal_entity.ResourceAccess'
         type: object
       sub:
         type: string
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginRequest:
+  be-modami-auth-service_internal_entity.LoginRequest:
     properties:
       password:
         example: secret123
@@ -56,7 +56,7 @@ definitions:
     - password
     - username
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse:
+  be-modami-auth-service_internal_entity.LoginResponse:
     properties:
       access_token:
         type: string
@@ -67,28 +67,28 @@ definitions:
       token_type:
         type: string
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.LogoutRequest:
+  be-modami-auth-service_internal_entity.LogoutRequest:
     properties:
       refresh_token:
         type: string
     required:
     - refresh_token
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.RealmAccess:
+  be-modami-auth-service_internal_entity.RealmAccess:
     properties:
       roles:
         items:
           type: string
         type: array
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.RefreshRequest:
+  be-modami-auth-service_internal_entity.RefreshRequest:
     properties:
       refresh_token:
         type: string
     required:
     - refresh_token
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterRequest:
+  be-modami-auth-service_internal_entity.RegisterRequest:
     properties:
       email:
         example: john@example.com
@@ -111,24 +111,24 @@ definitions:
     - password
     - username
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterResponse:
+  be-modami-auth-service_internal_entity.RegisterResponse:
     properties:
       user_id:
         type: string
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.ResourceAccess:
+  be-modami-auth-service_internal_entity.ResourceAccess:
     properties:
       roles:
         items:
           type: string
         type: array
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.SocialLoginResponse:
+  be-modami-auth-service_internal_entity.SocialLoginResponse:
     properties:
       auth_url:
         type: string
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.UpdateProfileRequest:
+  be-modami-auth-service_internal_entity.UpdateProfileRequest:
     properties:
       email:
         example: john@example.com
@@ -140,7 +140,7 @@ definitions:
         example: Doe
         type: string
     type: object
-  github_com_cenfit_be-cenfit-auth-service_internal_entity.User:
+  be-modami-auth-service_internal_entity.User:
     properties:
       email:
         type: string
@@ -155,7 +155,7 @@ definitions:
       preferred_username:
         type: string
     type: object
-  github_com_cenfit_be-cenfit-auth-service_pkg_response.Response:
+  be-modami-auth-service_pkg_response.Response:
     properties:
       data: {}
       error:
@@ -224,15 +224,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: List realm roles
@@ -248,21 +248,21 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.User'
+                    $ref: '#/definitions/be-modami-auth-service_internal_entity.User'
                   type: array
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: List users
@@ -284,19 +284,19 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.User'
+                  $ref: '#/definitions/be-modami-auth-service_internal_entity.User'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: Get user by ID
@@ -327,11 +327,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: Remove roles from user
@@ -351,15 +351,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: Get user roles
@@ -389,11 +389,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: Assign roles to user
@@ -410,18 +410,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ForgotPasswordRequest'
+          $ref: '#/definitions/be-modami-auth-service_internal_entity.ForgotPasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       summary: Forgot password
       tags:
       - auth
@@ -436,7 +436,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginRequest'
+          $ref: '#/definitions/be-modami-auth-service_internal_entity.LoginRequest'
       produces:
       - application/json
       responses:
@@ -444,15 +444,15 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse'
+                  $ref: '#/definitions/be-modami-auth-service_internal_entity.LoginResponse'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       summary: User login
       tags:
       - auth
@@ -467,7 +467,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LogoutRequest'
+          $ref: '#/definitions/be-modami-auth-service_internal_entity.LogoutRequest'
       produces:
       - application/json
       responses:
@@ -476,7 +476,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       summary: Logout user
       tags:
       - auth
@@ -491,7 +491,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RefreshRequest'
+          $ref: '#/definitions/be-modami-auth-service_internal_entity.RefreshRequest'
       produces:
       - application/json
       responses:
@@ -499,15 +499,15 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse'
+                  $ref: '#/definitions/be-modami-auth-service_internal_entity.LoginResponse'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       summary: Refresh access token
       tags:
       - auth
@@ -522,7 +522,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterRequest'
+          $ref: '#/definitions/be-modami-auth-service_internal_entity.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -530,19 +530,19 @@ paths:
           description: Created
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.RegisterResponse'
+                  $ref: '#/definitions/be-modami-auth-service_internal_entity.RegisterResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       summary: Register new user
       tags:
       - auth
@@ -562,15 +562,15 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.LoginResponse'
+                  $ref: '#/definitions/be-modami-auth-service_internal_entity.LoginResponse'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       summary: Social login callback
       tags:
       - auth
@@ -590,15 +590,15 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.SocialLoginResponse'
+                  $ref: '#/definitions/be-modami-auth-service_internal_entity.SocialLoginResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       summary: Social login
       tags:
       - auth
@@ -612,15 +612,15 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            - $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.KeycloakClaims'
+                  $ref: '#/definitions/be-modami-auth-service_internal_entity.KeycloakClaims'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: Get current user
@@ -637,7 +637,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.ChangePasswordRequest'
+          $ref: '#/definitions/be-modami-auth-service_internal_entity.ChangePasswordRequest'
       produces:
       - application/json
       responses:
@@ -646,7 +646,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: Change password
@@ -663,7 +663,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_internal_entity.UpdateProfileRequest'
+          $ref: '#/definitions/be-modami-auth-service_internal_entity.UpdateProfileRequest'
       produces:
       - application/json
       responses:
@@ -672,11 +672,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_cenfit_be-cenfit-auth-service_pkg_response.Response'
+            $ref: '#/definitions/be-modami-auth-service_pkg_response.Response'
       security:
       - BearerAuth: []
       summary: Update profile

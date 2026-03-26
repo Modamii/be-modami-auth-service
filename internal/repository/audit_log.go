@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cenfit/be-cenfit-auth-service/pkg/db/sqlc"
+	"be-modami-auth-service/pkg/db/sqlc"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

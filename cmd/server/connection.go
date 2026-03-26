@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 
-	"github.com/cenfit/be-cenfit-auth-service/config"
-	"github.com/cenfit/be-cenfit-auth-service/internal/delivery/http/handler"
-	"github.com/cenfit/be-cenfit-auth-service/internal/usecase"
-	"github.com/cenfit/be-cenfit-auth-service/pkg/db"
+	"be-modami-auth-service/config"
+	"be-modami-auth-service/internal/delivery/http/handler"
+	"be-modami-auth-service/internal/usecase"
+	"be-modami-auth-service/pkg/db"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )

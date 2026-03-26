@@ -5,9 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/cenfit/be-cenfit-auth-service/internal/delivery/http/middleware"
-	"github.com/cenfit/be-cenfit-auth-service/internal/entity"
-	"github.com/cenfit/be-cenfit-auth-service/pkg/ctxutil"
+	"be-modami-auth-service/internal/delivery/http/middleware"
+	"be-modami-auth-service/internal/entity"
+	"be-modami-auth-service/pkg/ctxutil"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

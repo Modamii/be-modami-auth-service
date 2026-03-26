@@ -3,10 +3,11 @@ package handler
 import (
 	"net/http"
 
-	"github.com/cenfit/be-cenfit-auth-service/internal/entity"
-	"github.com/cenfit/be-cenfit-auth-service/internal/usecase"
-	"github.com/cenfit/be-cenfit-auth-service/pkg/ctxutil"
-	"github.com/cenfit/be-cenfit-auth-service/pkg/response"
+	"be-modami-auth-service/internal/entity"
+	"be-modami-auth-service/internal/usecase"
+	"be-modami-auth-service/pkg/ctxutil"
+	"be-modami-auth-service/pkg/response"
+
 	"github.com/gin-gonic/gin"
 )
 

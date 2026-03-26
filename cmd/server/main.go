@@ -3,8 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/cenfit/be-cenfit-auth-service/config"
-	"github.com/cenfit/be-cenfit-auth-service/pkg/logger"
+	"be-modami-auth-service/config"
+	"be-modami-auth-service/pkg/logger"
+
 	"go.uber.org/zap"
 )
 
@@ -17,7 +18,7 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-// @description Enter your bearer token: **Bearer &lt;token&gt;**
+// @description Enter your token in the format: **Bearer {token}**
 
 func main() {
 	cfg, err := config.Load()

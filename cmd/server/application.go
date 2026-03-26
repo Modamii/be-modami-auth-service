@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/cenfit/be-cenfit-auth-service/config"
-	"github.com/cenfit/be-cenfit-auth-service/internal/command"
-	deliveryhttp "github.com/cenfit/be-cenfit-auth-service/internal/delivery/http"
-	"github.com/cenfit/be-cenfit-auth-service/internal/delivery/http/handler"
+	"be-modami-auth-service/config"
+	"be-modami-auth-service/internal/command"
+	deliveryhttp "be-modami-auth-service/internal/delivery/http"
+	"be-modami-auth-service/internal/delivery/http/handler"
+
 	"go.uber.org/zap"
 )
 

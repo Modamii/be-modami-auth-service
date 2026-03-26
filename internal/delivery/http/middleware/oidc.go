@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"github.com/cenfit/be-cenfit-auth-service/internal/usecase"
-	"github.com/cenfit/be-cenfit-auth-service/pkg/ctxutil"
-	"github.com/cenfit/be-cenfit-auth-service/pkg/response"
+	"be-modami-auth-service/internal/usecase"
+	"be-modami-auth-service/pkg/ctxutil"
+	"be-modami-auth-service/pkg/response"
+
 	"github.com/gin-gonic/gin"
 )
 

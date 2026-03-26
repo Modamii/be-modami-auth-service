@@ -7,7 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/cenfit/be-cenfit-auth-service/internal/delivery/http/handler"
+	"be-modami-auth-service/internal/delivery/http/handler"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
