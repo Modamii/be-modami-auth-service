@@ -10,24 +10,28 @@ import (
 	"strings"
 
 	"be-modami-auth-service/internal/entity"
+	"be-modami-auth-service/pkg/kafka"
+	"be-modami-auth-service/pkg/kafka/events"
 
 	"github.com/Nerzal/gocloak/v13"
 	"go.uber.org/zap"
 )
 
 type AuthKeycloakUseCase struct {
-	client *gocloak.GoCloak
-	cfg    KeycloakConfig
-	logger *zap.Logger
-	admin  *KeycloakUseCase
+	client   *gocloak.GoCloak
+	cfg      KeycloakConfig
+	logger   *zap.Logger
+	admin    *KeycloakUseCase
+	producer kafka.Producer
 }
 
-func NewAuthKeycloakUseCase(cfg KeycloakConfig, admin *KeycloakUseCase, logger *zap.Logger) *AuthKeycloakUseCase {
+func NewAuthKeycloakUseCase(cfg KeycloakConfig, admin *KeycloakUseCase, logger *zap.Logger, producer kafka.Producer) *AuthKeycloakUseCase {
 	return &AuthKeycloakUseCase{
-		client: gocloak.NewClient(cfg.BaseURL),
-		cfg:    cfg,
-		logger: logger,
-		admin:  admin,
+		client:   gocloak.NewClient(cfg.BaseURL),
+		cfg:      cfg,
+		logger:   logger,
+		admin:    admin,
+		producer: producer,
 	}
 }
 
@@ -71,6 +75,15 @@ func (uc *AuthKeycloakUseCase) Register(ctx context.Context, req entity.Register
 	if err := uc.client.SetPassword(ctx, adminToken, userID, uc.cfg.Realm, req.Password, false); err != nil {
 		uc.logger.Error("failed to set password", zap.String("user_id", userID), zap.Error(err))
 		return nil, entity.NewAppError(500, "failed to set password", err)
+	}
+
+	if uc.producer != nil {
+		topics := kafka.GetKafkaTopics()
+		payload := events.NewUserCreatedPayload(userID, req.Email, req.Username, req.FirstName, req.LastName)
+		uc.producer.EmitAsync(ctx, topics.User.Created, &kafka.ProducerMessage{
+			Key:   userID,
+			Value: payload,
+		})
 	}
 
 	return &entity.RegisterResponse{UserID: userID}, nil
@@ -247,6 +260,19 @@ func (uc *AuthKeycloakUseCase) UpdateProfile(ctx context.Context, userID string,
 	if err := uc.client.UpdateUser(ctx, adminToken, uc.cfg.Realm, *user); err != nil {
 		uc.logger.Error("failed to update user profile", zap.String("user_id", userID), zap.Error(err))
 		return entity.NewAppError(500, "failed to update profile", err)
+	}
+
+	if uc.producer != nil {
+		topics := kafka.GetKafkaTopics()
+		payload := events.NewUserUpdatedPayload(userID,
+			derefStr(user.Email),
+			derefStr(user.FirstName),
+			derefStr(user.LastName),
+		)
+		uc.producer.EmitAsync(ctx, topics.User.Updated, &kafka.ProducerMessage{
+			Key:   userID,
+			Value: payload,
+		})
 	}
 
 	return nil

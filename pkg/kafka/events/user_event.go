@@ -1,25 +1,49 @@
 package events
 
-type UserCreatedEvent struct {
-	EventType string    `json:"eventType"`
-	UserID    string    `json:"userId"`
+import "time"
+
+// UserCreatedPayload is the payload for the user.created event.
+type UserCreatedPayload struct {
+	BaseEventPayload
+	UserID    string `json:"userId"`
+	Email     string `json:"email"`
+	Username  string `json:"username"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
 }
 
-func NewUserCreatedEvent(userID string) *UserCreatedEvent {
-	return &UserCreatedEvent{
-		EventType: "user_created",
+func NewUserCreatedPayload(userID, email, username, firstName, lastName string) *UserCreatedPayload {
+	return &UserCreatedPayload{
+		BaseEventPayload: BaseEventPayload{
+			Type:      "user.created",
+			Timestamp: time.Now(),
+		},
 		UserID:    userID,
+		Email:     email,
+		Username:  username,
+		FirstName: firstName,
+		LastName:  lastName,
 	}
 }
 
-type UserUpdatedEvent struct {
-	EventType string `json:"eventType"`
+// UserUpdatedPayload is the payload for the user.updated event.
+type UserUpdatedPayload struct {
+	BaseEventPayload
 	UserID    string `json:"userId"`
+	Email     string `json:"email"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
 }
 
-func NewUserUpdatedEvent(userID string) *UserUpdatedEvent {
-	return &UserUpdatedEvent{
-		EventType: "user_updated",
+func NewUserUpdatedPayload(userID, email, firstName, lastName string) *UserUpdatedPayload {
+	return &UserUpdatedPayload{
+		BaseEventPayload: BaseEventPayload{
+			Type:      "user.updated",
+			Timestamp: time.Now(),
+		},
 		UserID:    userID,
+		Email:     email,
+		FirstName: firstName,
+		LastName:  lastName,
 	}
 }

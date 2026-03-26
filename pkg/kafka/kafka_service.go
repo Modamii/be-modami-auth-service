@@ -6,14 +6,15 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	config "github.com/techinsight/be-techinsights-notification-service/configs"
 	"time"
+
+	"be-modami-auth-service/config"
 
 	"github.com/twmb/franz-go/pkg/kadm"
 	"github.com/twmb/franz-go/pkg/kgo"
-	logging "gitlab.com/lifegoeson-libs/pkg-logging"
-	"gitlab.com/lifegoeson-libs/pkg-logging/logger"
+	"go.uber.org/zap"
 )
+
 type KafkaService struct {
 	config    *KafkaConfig
 	appConfig *config.Config
@@ -22,6 +23,7 @@ type KafkaService struct {
 	mu        sync.RWMutex
 	running   bool
 }
+
 func NewKafkaService(cfg *KafkaConfig, appCfg *config.Config) (*KafkaService, error) {
 	if cfg == nil {
 		cfg = GetDefaultKafkaConfig(appCfg)
@@ -45,11 +47,13 @@ func NewKafkaService(cfg *KafkaConfig, appCfg *config.Config) (*KafkaService, er
 		running:   false,
 	}, nil
 }
+
 type ProducerMessage struct {
 	Key     string                 `json:"key"`
 	Value   interface{}            `json:"value"`
 	Headers map[string]interface{} `json:"headers,omitempty"`
 }
+
 // Emit sends a message to Kafka synchronously with trace context propagation
 func (k *KafkaService) Emit(ctx context.Context, topic string, message *ProducerMessage) error {
 	topicName := GetTopicWithEnv(k.appConfig, topic)
@@ -69,16 +73,16 @@ func (k *KafkaService) Emit(ctx context.Context, topic string, message *Producer
 	}
 
 	if err := k.client.ProduceSync(ctx, record).FirstErr(); err != nil {
-		logger.Error(ctx, "Failed to send message", err,
-			logging.String("topic", topicName),
-			logging.String("key", message.Key),
+		zap.L().Error("Failed to send message", zap.Error(err),
+			zap.String("topic", topicName),
+			zap.String("key", message.Key),
 		)
 		return fmt.Errorf("failed to send message to topic %s: %w", topicName, err)
 	}
 
-	logger.Info(ctx, "Message sent successfully",
-		logging.String("topic", topicName),
-		logging.String("key", message.Key),
+	zap.L().Info("Message sent successfully",
+		zap.String("topic", topicName),
+		zap.String("key", message.Key),
 	)
 	return nil
 }
@@ -92,9 +96,7 @@ func (k *KafkaService) EnsureTopics(ctx context.Context) error {
 		targetTopics = append(targetTopics, GetTopicWithEnv(k.appConfig, t))
 	}
 
-	logger.Info(ctx, "Ensuring Kafka topics exist...",
-		logging.Int("count", len(targetTopics)),
-	)
+	zap.L().Info("Ensuring Kafka topics exist...", zap.Int("count", len(targetTopics)))
 
 	metadata, err := adm.Metadata(ctx)
 	if err != nil {
@@ -105,9 +107,9 @@ func (k *KafkaService) EnsureTopics(ctx context.Context) error {
 	replicationFactor := int16(3)
 	if brokerCount < 3 {
 		replicationFactor = 1
-		logger.Warn(ctx, "Broker count is less than 3, falling back to lower replication factor",
-			logging.Int("brokers", brokerCount),
-			logging.Int("fallback_replication", int(replicationFactor)),
+		zap.L().Warn("Broker count is less than 3, falling back to lower replication factor",
+			zap.Int("brokers", brokerCount),
+			zap.Int16("fallback_replication", replicationFactor),
 		)
 	}
 
@@ -141,37 +143,35 @@ func (k *KafkaService) EnsureTopics(ctx context.Context) error {
 	}
 
 	if len(redundantTopics) > 0 {
-		logger.Info(ctx, "Deleting redundant Kafka topics...",
-			logging.Int("count", len(redundantTopics)),
-			logging.String("topics", strings.Join(redundantTopics, ",")),
+		zap.L().Info("Deleting redundant Kafka topics...",
+			zap.Int("count", len(redundantTopics)),
+			zap.String("topics", strings.Join(redundantTopics, ",")),
 		)
 		delResp, err := adm.DeleteTopics(ctx, redundantTopics...)
 		if err != nil {
-			logger.Error(ctx, "Failed to delete redundant topics", err)
+			zap.L().Error("Failed to delete redundant topics", zap.Error(err))
 		} else {
 			for _, res := range delResp {
 				if res.Err != nil {
-					logger.Error(ctx, "Failed to delete redundant topic", res.Err,
-						logging.String("topic", res.Topic),
+					zap.L().Error("Failed to delete redundant topic", zap.Error(res.Err),
+						zap.String("topic", res.Topic),
 					)
 				} else {
-					logger.Info(ctx, "Successfully deleted redundant topic",
-						logging.String("topic", res.Topic),
-					)
+					zap.L().Info("Successfully deleted redundant topic", zap.String("topic", res.Topic))
 				}
 			}
 		}
 	}
 
 	if len(missingTopics) == 0 {
-		logger.Info(ctx, "All required Kafka topics already exist")
+		zap.L().Info("All required Kafka topics already exist")
 		return nil
 	}
 
-	logger.Info(ctx, "Creating missing Kafka topics...",
-		logging.Int("missing_count", len(missingTopics)),
-		logging.Int("partitions", 1),
-		logging.Int("replication", int(replicationFactor)),
+	zap.L().Info("Creating missing Kafka topics...",
+		zap.Int("missing_count", len(missingTopics)),
+		zap.Int("partitions", 1),
+		zap.Int16("replication", replicationFactor),
 	)
 
 	resp, err := adm.CreateTopics(ctx, 1, replicationFactor, nil, missingTopics...)
@@ -182,14 +182,10 @@ func (k *KafkaService) EnsureTopics(ctx context.Context) error {
 	hasError := false
 	for _, res := range resp {
 		if res.Err != nil {
-			logger.Error(ctx, "Failed to create topic", res.Err,
-				logging.String("topic", res.Topic),
-			)
+			zap.L().Error("Failed to create topic", zap.Error(res.Err), zap.String("topic", res.Topic))
 			hasError = true
 		} else {
-			logger.Info(ctx, "Successfully created topic",
-				logging.String("topic", res.Topic),
-			)
+			zap.L().Info("Successfully created topic", zap.String("topic", res.Topic))
 		}
 	}
 
@@ -203,7 +199,7 @@ func (k *KafkaService) EmitAsync(ctx context.Context, topic string, message *Pro
 	topicName := GetTopicWithEnv(k.appConfig, topic)
 	valueBytes, err := json.Marshal(message.Value)
 	if err != nil {
-		logger.Error(ctx, "Failed to marshal message value for async emit", err)
+		zap.L().Error("Failed to marshal message value for async emit", zap.Error(err))
 		return
 	}
 
@@ -224,15 +220,15 @@ func (k *KafkaService) EmitAsync(ctx context.Context, topic string, message *Pro
 	k.client.Produce(produceCtx, record, func(r *kgo.Record, err error) {
 		defer cancel()
 		if err != nil {
-			logger.Error(produceCtx, "Failed to send async message", err,
-				logging.String("topic", topicName),
-				logging.String("key", message.Key),
+			zap.L().Error("Failed to send async message", zap.Error(err),
+				zap.String("topic", topicName),
+				zap.String("key", message.Key),
 			)
 			return
 		}
-		logger.Debug(produceCtx, "Async message sent successfully",
-			logging.String("topic", topicName),
-			logging.String("key", message.Key),
+		zap.L().Debug("Async message sent successfully",
+			zap.String("topic", topicName),
+			zap.String("key", message.Key),
 		)
 	})
 }
@@ -244,7 +240,7 @@ func (k *KafkaService) SendMessages(ctx context.Context, topic string, messages 
 	for _, message := range messages {
 		valueBytes, err := json.Marshal(message.Value)
 		if err != nil {
-			logger.Error(ctx, "Failed to marshal message value", err)
+			zap.L().Error("Failed to marshal message value", zap.Error(err))
 			continue
 		}
 
@@ -260,16 +256,16 @@ func (k *KafkaService) SendMessages(ctx context.Context, topic string, messages 
 	}
 
 	if err := k.client.ProduceSync(ctx, records...).FirstErr(); err != nil {
-		logger.Error(ctx, "Failed to send messages", err,
-			logging.String("topic", topicName),
-			logging.Int("count", len(messages)),
+		zap.L().Error("Failed to send messages", zap.Error(err),
+			zap.String("topic", topicName),
+			zap.Int("count", len(messages)),
 		)
 		return fmt.Errorf("failed to send messages to topic %s: %w", topicName, err)
 	}
 
-	logger.Info(ctx, "Messages sent successfully",
-		logging.String("topic", topicName),
-		logging.Int("count", len(messages)),
+	zap.L().Info("Messages sent successfully",
+		zap.String("topic", topicName),
+		zap.Int("count", len(messages)),
 	)
 	return nil
 }
@@ -287,9 +283,9 @@ func (k *KafkaService) buildHeaders(ctx context.Context, customHeaders map[strin
 	for key, value := range customHeaders {
 		headerBytes, err := json.Marshal(value)
 		if err != nil {
-			logger.Warn(ctx, "Failed to marshal header value",
-				logging.String("key", key),
-				logging.String("error", err.Error()),
+			zap.L().Warn("Failed to marshal header value",
+				zap.String("key", key),
+				zap.String("error", err.Error()),
 			)
 			continue
 		}
@@ -301,15 +297,16 @@ func (k *KafkaService) buildHeaders(ctx context.Context, customHeaders map[strin
 
 	return headers
 }
+
 func (k *KafkaService) RegisterHandler(handler ConsumerHandler) {
 	k.mu.Lock()
 	defer k.mu.Unlock()
 	if k.running {
-		logger.Error(context.Background(), "Cannot register handler while service is running", fmt.Errorf("service running"))
+		zap.L().Error("Cannot register handler while service is running", zap.Error(fmt.Errorf("service running")))
 		return
 	}
-	logger.Info(context.Background(), "Registering consumer handler",
-		logging.String("topics", strings.Join(handler.GetTopics(), ",")),
+	zap.L().Info("Registering consumer handler",
+		zap.String("topics", strings.Join(handler.GetTopics(), ",")),
 	)
 }
 
@@ -338,21 +335,19 @@ func (k *KafkaService) StartConsumer(ctx context.Context, handlers []ConsumerHan
 	}
 
 	k.client.AddConsumeTopics(topics...)
-	logger.Info(ctx, "Starting consumer group",
-		logging.String("topics", strings.Join(topics, ",")),
-	)
+	zap.L().Info("Starting consumer group", zap.String("topics", strings.Join(topics, ",")))
 
 	for {
 		fetches := k.client.PollFetches(ctx)
 		if err := fetches.Err(); err != nil {
 			if err == context.Canceled {
-				logger.Info(ctx, "Consumer context cancelled")
+				zap.L().Info("Consumer context cancelled")
 				k.mu.Lock()
 				k.running = false
 				k.mu.Unlock()
 				return nil
 			}
-			logger.Error(ctx, "Consumer poll error", err)
+			zap.L().Error("Consumer poll error", zap.Error(err))
 			time.Sleep(time.Second)
 			continue
 		}
@@ -363,24 +358,23 @@ func (k *KafkaService) StartConsumer(ctx context.Context, handlers []ConsumerHan
 
 			msgCtx := k.extractContextFromHeaders(record.Headers)
 
-			handlers, exists := handlerMap[record.Topic]
+			topicHandlers, exists := handlerMap[record.Topic]
 			if !exists {
-				logger.Warn(msgCtx, "No handlers found for topic",
-					logging.String("topic", record.Topic),
-				)
+				zap.L().Warn("No handlers found for topic", zap.String("topic", record.Topic))
 				continue
 			}
 
-			for _, handler := range handlers {
+			for _, handler := range topicHandlers {
 				if err := handler.HandleMessage(msgCtx, record); err != nil {
-					logger.Error(msgCtx, "Failed to handle message", err,
-						logging.String("topic", record.Topic),
+					zap.L().Error("Failed to handle message", zap.Error(err),
+						zap.String("topic", record.Topic),
 					)
 				}
 			}
 		}
 	}
 }
+
 func (k *KafkaService) Close() error {
 	k.mu.Lock()
 	defer k.mu.Unlock()

@@ -7,6 +7,7 @@ import (
 	"be-modami-auth-service/internal/delivery/http/handler"
 	"be-modami-auth-service/internal/usecase"
 	"be-modami-auth-service/pkg/db"
+	"be-modami-auth-service/pkg/kafka"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -17,6 +18,7 @@ type connections struct {
 	keycloakUC     *usecase.KeycloakUseCase
 	authKeycloakUC *usecase.AuthKeycloakUseCase
 	tokenVerifier  usecase.TokenVerifier
+	kafkaService   *kafka.KafkaService
 }
 
 func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger *zap.Logger) (*connections, error) {
@@ -37,6 +39,21 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		logger.Warn("DATABASE_URL not set, skipping database")
 	}
 
+	// Kafka (optional)
+	var kafkaProducer kafka.Producer
+	if len(cfg.Kafka.Brokers) > 0 {
+		kafkaSvc, err := kafka.NewKafkaService(nil, cfg)
+		if err != nil {
+			logger.Warn("failed to initialize Kafka, events will be disabled", zap.Error(err))
+		} else {
+			conn.kafkaService = kafkaSvc
+			kafkaProducer = kafkaSvc
+			logger.Info("Kafka connected", zap.Strings("brokers", cfg.Kafka.Brokers))
+		}
+	} else {
+		logger.Warn("Kafka brokers not configured, events will be disabled")
+	}
+
 	// Keycloak
 	keycloakCfg := usecase.KeycloakConfig{
 		BaseURL:      cfg.Keycloak.BaseURL,
@@ -48,7 +65,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		RedirectURL:  cfg.Keycloak.RedirectURL,
 	}
 	conn.keycloakUC = usecase.NewKeycloakUseCase(keycloakCfg, logger)
-	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger)
+	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, kafkaProducer)
 
 	// OIDC token verifier (non-fatal — allows app to start without Keycloak)
 	if cfg.Keycloak.BaseURL != "" && cfg.Keycloak.Realm != "" {
@@ -73,5 +90,8 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 func (c *connections) Close() {
 	if c.dbPool != nil {
 		c.dbPool.Close()
+	}
+	if c.kafkaService != nil {
+		c.kafkaService.Close()
 	}
 }
