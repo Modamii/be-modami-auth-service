@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"go.uber.org/zap"
+	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 
 	_ "be-modami-auth-service/docs"
 )
@@ -19,7 +19,7 @@ type RouterDeps struct {
 	User     *handler.User
 	Role     *handler.Role
 	Verifier usecase.TokenVerifier
-	Logger   *zap.Logger
+	Logger   logging.Logger
 }
 
 func NewRouter(deps RouterDeps) *gin.Engine {

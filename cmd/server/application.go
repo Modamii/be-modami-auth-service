@@ -2,29 +2,33 @@ package main
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"be-modami-auth-service/config"
 	"be-modami-auth-service/internal/command"
 	deliveryhttp "be-modami-auth-service/internal/delivery/http"
 	"be-modami-auth-service/internal/delivery/http/handler"
+	"be-modami-auth-service/pkg/logger"
 
-	"go.uber.org/zap"
+	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
 type application struct {
 	server *command.Server
 	conn   *connections
-	logger *zap.Logger
+	logger logging.Logger
 }
 
-func newApplication(cfg *config.Config, logger *zap.Logger) (*application, error) {
+func newApplication(cfg *config.Config) (*application, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	l := logger.L()
+
 	health := handler.NewHealth()
 
-	conn, err := initConnections(ctx, cfg, health, logger)
+	conn, err := initConnections(ctx, cfg, health, l)
 	if err != nil {
 		return nil, err
 	}
@@ -41,22 +45,23 @@ func newApplication(cfg *config.Config, logger *zap.Logger) (*application, error
 		User:     userHandler,
 		Role:     roleHandler,
 		Verifier: conn.tokenVerifier,
-		Logger:   logger,
+		Logger:   l,
 	})
 
 	// Server
-	srv := command.NewServer(cfg.Server.Port, r, cfg.Server.GetShutdownTimeout(), logger)
+	srv := command.NewServer(cfg.Server.Port, r, cfg.Server.GetShutdownTimeout(), l)
 
 	return &application{
 		server: srv,
 		conn:   conn,
-		logger: logger,
+		logger: l,
 	}, nil
 }
 
 func (a *application) Run() {
 	if err := a.server.Run(); err != nil {
-		a.logger.Fatal("server error", zap.Error(err))
+		a.logger.Error("server error", err)
+		os.Exit(1)
 	}
 }
 

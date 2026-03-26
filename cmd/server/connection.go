@@ -10,7 +10,7 @@ import (
 	"be-modami-auth-service/pkg/kafka"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"go.uber.org/zap"
+	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
 type connections struct {
@@ -21,7 +21,7 @@ type connections struct {
 	kafkaService   *kafka.KafkaService
 }
 
-func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger *zap.Logger) (*connections, error) {
+func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger logging.Logger) (*connections, error) {
 	conn := &connections{}
 
 	// Database (optional)
@@ -44,11 +44,11 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	if len(cfg.Kafka.Brokers) > 0 {
 		kafkaSvc, err := kafka.NewKafkaService(nil, cfg)
 		if err != nil {
-			logger.Warn("failed to initialize Kafka, events will be disabled", zap.Error(err))
+			logger.Warn("failed to initialize Kafka, events will be disabled", logging.Any("error", err.Error()))
 		} else {
 			conn.kafkaService = kafkaSvc
 			kafkaProducer = kafkaSvc
-			logger.Info("Kafka connected", zap.Strings("brokers", cfg.Kafka.Brokers))
+			logger.Info("Kafka connected", logging.Any("brokers", cfg.Kafka.Brokers))
 		}
 	} else {
 		logger.Warn("Kafka brokers not configured, events will be disabled")
@@ -72,13 +72,13 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		issuerURL := cfg.Keycloak.BaseURL + "/realms/" + cfg.Keycloak.Realm
 		uc, err := usecase.NewAuthUseCase(ctx, issuerURL, cfg.Keycloak.ClientID, logger)
 		if err != nil {
-			logger.Warn("OIDC provider not available, token verification disabled", zap.Error(err))
+			logger.Warn("OIDC provider not available, token verification disabled", logging.Any("error", err.Error()))
 		} else {
 			conn.tokenVerifier = uc
 			health.AddCheck(func(ctx context.Context) error {
 				return conn.keycloakUC.Ping(ctx)
 			})
-			logger.Info("OIDC provider initialized", zap.String("issuer", issuerURL))
+			logger.Info("OIDC provider initialized", logging.String("issuer", issuerURL))
 		}
 	} else {
 		logger.Warn("Keycloak not configured, OIDC middleware disabled")

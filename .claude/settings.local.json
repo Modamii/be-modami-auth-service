@@ -17,7 +17,9 @@
       "Bash(netstat -tlnp)",
       "Bash(env)",
       "Bash(kill:*)",
-      "Bash(make swagger:*)"
+      "Bash(make swagger:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ]
   }
 }

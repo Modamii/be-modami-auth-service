@@ -18,6 +18,8 @@ type Config struct {
 }
 
 type AppConfig struct {
+	Name        string `mapstructure:"name"`
+	Version     string `mapstructure:"version"`
 	Environment string `mapstructure:"environment"`
 }
 
@@ -57,8 +59,11 @@ type KeycloakConfig struct {
 }
 
 type LogConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level        string `mapstructure:"level"`
+	Format       string `mapstructure:"format"`
+	OTLPEndpoint string `mapstructure:"otlp_endpoint"`
+	Insecure     bool   `mapstructure:"insecure"`
+	TLSCertFile  string `mapstructure:"tls_cert_file"`
 }
 
 func Load() (*Config, error) {
@@ -75,6 +80,8 @@ func Load() (*Config, error) {
 	v.SetDefault("server.shutdown_timeout", "15s")
 	v.SetDefault("db.max_conns", 25)
 	v.SetDefault("db.min_conns", 5)
+	v.SetDefault("app.name", "be-modami-auth-service")
+	v.SetDefault("app.version", "1.0.0")
 	v.SetDefault("log.level", "info")
 	v.SetDefault("log.format", "json")
 

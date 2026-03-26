@@ -9,16 +9,16 @@ import (
 	"syscall"
 	"time"
 
-	"go.uber.org/zap"
+	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
 type Server struct {
 	httpServer *http.Server
-	logger     *zap.Logger
+	logger     logging.Logger
 	shutdown   time.Duration
 }
 
-func NewServer(port int, handler http.Handler, shutdownTimeout time.Duration, logger *zap.Logger) *Server {
+func NewServer(port int, handler http.Handler, shutdownTimeout time.Duration, logger logging.Logger) *Server {
 	return &Server{
 		httpServer: &http.Server{
 			Addr:         fmt.Sprintf(":%d", port),
@@ -35,7 +35,7 @@ func NewServer(port int, handler http.Handler, shutdownTimeout time.Duration, lo
 func (s *Server) Run() error {
 	errCh := make(chan error, 1)
 	go func() {
-		s.logger.Info("http server listening", zap.String("addr", s.httpServer.Addr))
+		s.logger.Info("http server listening", logging.String("addr", s.httpServer.Addr))
 		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			errCh <- err
 		}
@@ -48,7 +48,7 @@ func (s *Server) Run() error {
 	case err := <-errCh:
 		return fmt.Errorf("server error: %w", err)
 	case sig := <-quit:
-		s.logger.Info("shutting down", zap.String("signal", sig.String()))
+		s.logger.Info("shutting down", logging.String("signal", sig.String()))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdown)

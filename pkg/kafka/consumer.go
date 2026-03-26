@@ -9,8 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"be-modami-auth-service/pkg/logger"
+
 	"github.com/twmb/franz-go/pkg/kgo"
-	"go.uber.org/zap"
+	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
 // RunConsumer creates a simple Kafka consumer that processes messages with a callback.
@@ -34,8 +36,8 @@ func RunConsumer(ctx context.Context, brokers []string, groupID, topic string, f
 		for !iter.Done() {
 			record := iter.Next()
 			if err := fn(ctx, record.Key, record.Value); err != nil {
-				zap.L().Error("consumer handler error", zap.Error(err),
-					zap.String("topic", record.Topic),
+				logger.Error(ctx, "consumer handler error", err,
+					logging.String("topic", record.Topic),
 				)
 			}
 		}
@@ -101,9 +103,10 @@ func NewConsumer(name string, kafkaService *KafkaService) *Consumer {
 
 func (c *Consumer) RegisterHandler(handler *TopicHandler) {
 	c.handlers[handler.Topic] = handler
-	zap.L().Info("Registered topic handler",
-		zap.String("consumer", c.name),
-		zap.String("topic", handler.Topic),
+	ctx := context.Background()
+	logger.Info(ctx, "Registered topic handler",
+		logging.String("consumer", c.name),
+		logging.String("topic", handler.Topic),
 	)
 }
 
@@ -111,58 +114,58 @@ func (c *Consumer) HandleMessage(ctx context.Context, message *kgo.Record) error
 	topic := message.Topic
 	handler, exists := c.handlers[topic]
 	if !exists {
-		zap.L().Warn("No handler found for topic",
-			zap.String("consumer", c.name),
-			zap.String("topic", topic),
+		logger.Warn(ctx, "No handler found for topic",
+			logging.String("consumer", c.name),
+			logging.String("topic", topic),
 		)
 		return fmt.Errorf("no handler found for topic: %s", topic)
 	}
 	if handler.Options.EnableLogging {
-		zap.L().Info("EventPattern start",
-			zap.String("consumer", c.name),
-			zap.String("topic", topic),
+		logger.Info(ctx, "EventPattern start",
+			logging.String("consumer", c.name),
+			logging.String("topic", topic),
 		)
 	}
 	start := time.Now()
 	var lastErr error
 	for attempt := 0; attempt <= handler.Options.RetryCount; attempt++ {
 		if attempt > 0 {
-			zap.L().Warn("Retrying message processing",
-				zap.String("consumer", c.name),
-				zap.String("topic", topic),
-				zap.Int("attempt", attempt),
+			logger.Warn(ctx, "Retrying message processing",
+				logging.String("consumer", c.name),
+				logging.String("topic", topic),
+				logging.Int("attempt", attempt),
 			)
 			time.Sleep(handler.Options.RetryDelay)
 		}
 		err := c.processMessage(ctx, handler, message)
 		if err == nil {
 			if handler.Options.EnableLogging {
-				zap.L().Info("EventPattern done",
-					zap.String("consumer", c.name),
-					zap.String("topic", topic),
-					zap.String("duration", time.Since(start).String()),
+				logger.Info(ctx, "EventPattern done",
+					logging.String("consumer", c.name),
+					logging.String("topic", topic),
+					logging.String("duration", time.Since(start).String()),
 				)
 			}
 			return nil
 		}
 		lastErr = err
-		zap.L().Error("EventPattern error", zap.Error(err),
-			zap.String("consumer", c.name),
-			zap.String("topic", topic),
-			zap.Int("attempt", attempt+1),
+		logger.Error(ctx, "EventPattern error", err,
+			logging.String("consumer", c.name),
+			logging.String("topic", topic),
+			logging.Int("attempt", attempt+1),
 		)
 	}
-	zap.L().Error("EventPattern failed after all retries", zap.Error(lastErr),
-		zap.String("consumer", c.name),
-		zap.String("topic", topic),
-		zap.Int("totalAttempts", handler.Options.RetryCount+1),
-		zap.String("totalDuration", time.Since(start).String()),
+	logger.Error(ctx, "EventPattern failed after all retries", lastErr,
+		logging.String("consumer", c.name),
+		logging.String("topic", topic),
+		logging.Int("totalAttempts", handler.Options.RetryCount+1),
+		logging.String("totalDuration", time.Since(start).String()),
 	)
 	if handler.Options.DeadLetterTopic != "" {
 		if err := c.sendToDeadLetterTopic(ctx, handler.Options.DeadLetterTopic, message, lastErr); err != nil {
-			zap.L().Error("Failed to send message to dead letter topic", zap.Error(err),
-				zap.String("consumer", c.name),
-				zap.String("deadLetterTopic", handler.Options.DeadLetterTopic),
+			logger.Error(ctx, "Failed to send message to dead letter topic", err,
+				logging.String("consumer", c.name),
+				logging.String("deadLetterTopic", handler.Options.DeadLetterTopic),
 			)
 		}
 	}
@@ -176,10 +179,10 @@ func (c *Consumer) processMessage(ctx context.Context, handler *TopicHandler, me
 	}
 	defer func() {
 		if r := recover(); r != nil {
-			zap.L().Error("Handler panicked", zap.Error(fmt.Errorf("panic: %v", r)),
-				zap.String("consumer", c.name),
-				zap.String("topic", handler.Topic),
-				zap.String("stack", getStackTrace()),
+			logger.Error(ctx, "Handler panicked", fmt.Errorf("panic: %v", r),
+				logging.String("consumer", c.name),
+				logging.String("topic", handler.Topic),
+				logging.String("stack", getStackTrace()),
 			)
 		}
 	}()

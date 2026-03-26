@@ -9,7 +9,7 @@ import (
 	"be-modami-auth-service/internal/entity"
 
 	"github.com/Nerzal/gocloak/v13"
-	"go.uber.org/zap"
+	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
 type KeycloakConfig struct {
@@ -25,14 +25,14 @@ type KeycloakConfig struct {
 type KeycloakUseCase struct {
 	client *gocloak.GoCloak
 	cfg    KeycloakConfig
-	logger *zap.Logger
+	logger logging.Logger
 
 	mu          sync.Mutex
 	cachedToken string
 	tokenExpiry time.Time
 }
 
-func NewKeycloakUseCase(cfg KeycloakConfig, logger *zap.Logger) *KeycloakUseCase {
+func NewKeycloakUseCase(cfg KeycloakConfig, logger logging.Logger) *KeycloakUseCase {
 	client := gocloak.NewClient(cfg.BaseURL)
 	return &KeycloakUseCase{
 		client: client,

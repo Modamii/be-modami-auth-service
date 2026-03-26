@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"be-modami-auth-service/config"
 	"be-modami-auth-service/pkg/logger"
 
-	"go.uber.org/zap"
+	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
 // @title           Cenfit Auth Service API
@@ -26,15 +27,25 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	zapLogger, err := logger.New(cfg.Log.Level, cfg.Log.Format)
-	if err != nil {
+	logCfg := logging.Config{
+		ServiceName:    cfg.App.Name,
+		ServiceVersion: cfg.App.Version,
+		Environment:    cfg.App.Environment,
+		Level:          cfg.Log.Level,
+		OTLPEndpoint:   cfg.Log.OTLPEndpoint,
+		Insecure:       cfg.Log.Insecure,
+		TLSCertFile:    cfg.Log.TLSCertFile,
+	}
+
+	if err := logger.Init(logCfg); err != nil {
 		log.Fatalf("failed to init logger: %v", err)
 	}
-	defer zapLogger.Sync()
+	defer logger.Shutdown(context.Background())
 
-	app, err := newApplication(cfg, zapLogger)
+	app, err := newApplication(cfg)
 	if err != nil {
-		zapLogger.Fatal("failed to initialize application", zap.Error(err))
+		logger.Error(context.Background(), "failed to initialize application", err)
+		log.Fatalf("failed to initialize application: %v", err)
 	}
 	defer app.Close()
 
