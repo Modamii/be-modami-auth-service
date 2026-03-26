@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: cenfit_auth
-      POSTGRES_USER: cenfit
-      POSTGRES_PASSWORD: cenfit
+      POSTGRES_DB: be-modami-auth-service
+      POSTGRES_USER: modami
+      POSTGRES_PASSWORD: modami
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cenfit -d cenfit_auth"]
+      test: ["CMD-SHELL", "pg_isready -U modami -d be-modami-auth-service"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -20,9 +20,9 @@ services:
     command: start-dev
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/cenfit_auth
-      KC_DB_USERNAME: cenfit
-      KC_DB_PASSWORD: cenfit
+      KC_DB_URL: jdbc:postgresql://postgres:5432/be-modami-auth-service
+      KC_DB_USERNAME: modami
+      KC_DB_PASSWORD: modami
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
