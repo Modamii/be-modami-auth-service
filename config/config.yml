@@ -2,10 +2,47 @@ server:
   port: 8085
   shutdown_timeout: "15s"
 
-db:
-  url: "postgres://cenfit:cenfit@localhost:5432/cenfit_auth?sslmode=disable"
-  max_conns: 25
-  min_conns: 5
+postgres:
+  host: "localhost"
+  port: 5432
+  schema: be-modami-auth-service
+  user_reader: "reader"
+  password_reader: "reader_password"
+  user_writer: "writer"
+  password_writer: "writer_password"
+  database: "be-modami-auth-service"
+  sslmode: require
+  max_idle_conns: 5
+  max_active_conns: 25
+  max_conn_timeout: 10m
+  debug_log: false
+
+redis:
+  host: "localhost"
+  port: 6379
+  database: 0
+  rate_limit_database: 5
+  ttl: 259200s
+  pool_size: 100
+  pass: "password"
+  user_name: "username"
+  write_timeout: 600s
+  read_timeout: 600s
+  dial_timeout: 600s
+  tls_config:
+    insecure_skip_verify: true
+
+kafka:
+  broker_list: "localhost:9096"
+  enable: false
+  tls_enable: false
+  partition: 1
+  partitioner: "random"
+  sasl_producer_username: "username"
+  sasl_producer_password: "password"
+  sasl_consumer_username: "username"
+  sasl_consumer_password: "password"
+  user_activated_topic_name: "modami.auth.user.activated"
 
 keycloak:
   base_url: "http://localhost:8180"

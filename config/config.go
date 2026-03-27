@@ -11,7 +11,8 @@ import (
 type Config struct {
 	App      AppConfig      `mapstructure:"app"`
 	Server   ServerConfig   `mapstructure:"server"`
-	DB       DBConfig       `mapstructure:"db"`
+	Postgres PostgresConfig `mapstructure:"postgres"`
+	Redis    RedisConfig    `mapstructure:"redis"`
 	Keycloak KeycloakConfig `mapstructure:"keycloak"`
 	Log      LogConfig      `mapstructure:"log"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
@@ -23,10 +24,78 @@ type AppConfig struct {
 	Environment string `mapstructure:"environment"`
 }
 
+type PostgresConfig struct {
+	Host           string `mapstructure:"host"`
+	Port           int    `mapstructure:"port"`
+	Schema         string `mapstructure:"schema"`
+	UserReader     string `mapstructure:"user_reader"`
+	PasswordReader string `mapstructure:"password_reader"`
+	UserWriter     string `mapstructure:"user_writer"`
+	PasswordWriter string `mapstructure:"password_writer"`
+	Database       string `mapstructure:"database"`
+	SSLMode        string `mapstructure:"sslmode"`
+	MaxIdleConns   int32  `mapstructure:"max_idle_conns"`
+	MaxActiveConns int32  `mapstructure:"max_active_conns"`
+	MaxConnTimeout string `mapstructure:"max_conn_timeout"`
+	DebugLog       bool   `mapstructure:"debug_log"`
+}
+
+func (p PostgresConfig) WriterURL() string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		p.UserWriter, p.PasswordWriter, p.Host, p.Port, p.Database, p.SSLMode)
+}
+
+func (p PostgresConfig) ReaderURL() string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		p.UserReader, p.PasswordReader, p.Host, p.Port, p.Database, p.SSLMode)
+}
+
+type RedisConfig struct {
+	Host              string         `mapstructure:"host"`
+	Port              int            `mapstructure:"port"`
+	Database          int            `mapstructure:"database"`
+	RateLimitDatabase int            `mapstructure:"rate_limit_database"`
+	TTL               string         `mapstructure:"ttl"`
+	PoolSize          int            `mapstructure:"pool_size"`
+	Pass              string         `mapstructure:"pass"`
+	UserName          string         `mapstructure:"user_name"`
+	WriteTimeout      string         `mapstructure:"write_timeout"`
+	ReadTimeout       string         `mapstructure:"read_timeout"`
+	DialTimeout       string         `mapstructure:"dial_timeout"`
+	TLSConfig         RedisTLSConfig `mapstructure:"tls_config"`
+}
+
+type RedisTLSConfig struct {
+	InsecureSkipVerify bool `mapstructure:"insecure_skip_verify"`
+}
+
 type KafkaConfig struct {
-	Brokers         []string `mapstructure:"brokers"`
-	ClientID        string   `mapstructure:"client_id"`
-	ConsumerGroupID string   `mapstructure:"consumer_group_id"`
+	BrokerList             string `mapstructure:"broker_list"`
+	Enable                 bool   `mapstructure:"enable"`
+	TLSEnable              bool   `mapstructure:"tls_enable"`
+	Partition              int    `mapstructure:"partition"`
+	Partitioner            string `mapstructure:"partitioner"`
+	SASLProducerUsername   string `mapstructure:"sasl_producer_username"`
+	SASLProducerPassword   string `mapstructure:"sasl_producer_password"`
+	SASLConsumerUsername   string `mapstructure:"sasl_consumer_username"`
+	SASLConsumerPassword   string `mapstructure:"sasl_consumer_password"`
+	UserActivatedTopicName string `mapstructure:"user_activated_topic_name"`
+	ClientID               string `mapstructure:"client_id"`
+	ConsumerGroupID        string `mapstructure:"consumer_group_id"`
+}
+
+func (k KafkaConfig) GetBrokers() []string {
+	if k.BrokerList == "" {
+		return nil
+	}
+	brokers := strings.Split(k.BrokerList, ",")
+	result := make([]string, 0, len(brokers))
+	for _, b := range brokers {
+		if trimmed := strings.TrimSpace(b); trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }
 
 type ServerConfig struct {
@@ -40,12 +109,6 @@ func (s ServerConfig) GetShutdownTimeout() time.Duration {
 		return 15 * time.Second
 	}
 	return d
-}
-
-type DBConfig struct {
-	URL      string `mapstructure:"url"`
-	MaxConns int32  `mapstructure:"max_conns"`
-	MinConns int32  `mapstructure:"min_conns"`
 }
 
 type KeycloakConfig struct {
@@ -78,8 +141,9 @@ func Load() (*Config, error) {
 	// Defaults
 	v.SetDefault("server.port", 8085)
 	v.SetDefault("server.shutdown_timeout", "15s")
-	v.SetDefault("db.max_conns", 25)
-	v.SetDefault("db.min_conns", 5)
+	v.SetDefault("postgres.max_idle_conns", 5)
+	v.SetDefault("postgres.max_active_conns", 25)
+	v.SetDefault("postgres.sslmode", "disable")
 	v.SetDefault("app.name", "be-modami-auth-service")
 	v.SetDefault("app.version", "1.0.0")
 	v.SetDefault("log.level", "info")

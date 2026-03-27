@@ -40,10 +40,10 @@ type SASLConfig struct {
 }
 
 func GetDefaultKafkaConfig(cfg *config.Config) *KafkaConfig {
-	return &KafkaConfig{
+	kCfg := &KafkaConfig{
 		Env:                 cfg.App.Environment,
 		PostfixID:           "default",
-		Brokers:             cfg.Kafka.Brokers,
+		Brokers:             cfg.Kafka.GetBrokers(),
 		ClientID:            cfg.Kafka.ClientID,
 		ConsumerGroupID:     cfg.Kafka.ConsumerGroupID,
 		ProducerOnlyMode:    true,
@@ -51,6 +51,20 @@ func GetDefaultKafkaConfig(cfg *config.Config) *KafkaConfig {
 		ConsumerMaxBytes:    10000,
 		ConsumerConcurrency: 100,
 	}
+
+	if cfg.Kafka.TLSEnable {
+		kCfg.SSL = &SSLConfig{}
+	}
+
+	if cfg.Kafka.SASLProducerUsername != "" {
+		kCfg.SASL = &SASLConfig{
+			Mechanism: "PLAIN",
+			Username:  cfg.Kafka.SASLProducerUsername,
+			Password:  cfg.Kafka.SASLProducerPassword,
+		}
+	}
+
+	return kCfg
 }
 
 func (kc *KafkaConfig) ToFranzGoOpts() ([]kgo.Opt, error) {

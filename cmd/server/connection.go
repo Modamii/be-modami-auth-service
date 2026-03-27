@@ -25,8 +25,8 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	conn := &connections{}
 
 	// Database (optional)
-	if cfg.DB.URL != "" {
-		pool, err := db.NewPool(ctx, cfg.DB.URL, cfg.DB.MaxConns, cfg.DB.MinConns)
+	if cfg.Postgres.Host != "" {
+		pool, err := db.NewPool(ctx, cfg.Postgres.WriterURL(), cfg.Postgres.MaxActiveConns, cfg.Postgres.MaxIdleConns)
 		if err != nil {
 			return nil, err
 		}
@@ -36,19 +36,19 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		})
 		logger.Info("database connected")
 	} else {
-		logger.Warn("DATABASE_URL not set, skipping database")
+		logger.Warn("postgres host not set, skipping database")
 	}
 
 	// Kafka (optional)
 	var kafkaProducer kafka.Producer
-	if len(cfg.Kafka.Brokers) > 0 {
+	if cfg.Kafka.Enable && len(cfg.Kafka.GetBrokers()) > 0 {
 		kafkaSvc, err := kafka.NewKafkaService(nil, cfg)
 		if err != nil {
 			logger.Warn("failed to initialize Kafka, events will be disabled", logging.Any("error", err.Error()))
 		} else {
 			conn.kafkaService = kafkaSvc
 			kafkaProducer = kafkaSvc
-			logger.Info("Kafka connected", logging.Any("brokers", cfg.Kafka.Brokers))
+			logger.Info("Kafka connected", logging.Any("brokers", cfg.Kafka.GetBrokers()))
 		}
 	} else {
 		logger.Warn("Kafka brokers not configured, events will be disabled")
@@ -67,7 +67,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	conn.keycloakUC = usecase.NewKeycloakUseCase(keycloakCfg, logger)
 	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, kafkaProducer)
 
-	// OIDC token verifier (non-fatal — allows app to start without Keycloak)
+	// OIDC token verifier (optional)
 	if cfg.Keycloak.BaseURL != "" && cfg.Keycloak.Realm != "" {
 		issuerURL := cfg.Keycloak.BaseURL + "/realms/" + cfg.Keycloak.Realm
 		uc, err := usecase.NewAuthUseCase(ctx, issuerURL, cfg.Keycloak.ClientID, logger)
