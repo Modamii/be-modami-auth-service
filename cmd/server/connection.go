@@ -46,8 +46,14 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		if err != nil {
 			logger.Warn("failed to initialize Kafka, events will be disabled", logging.Any("error", err.Error()))
 		} else {
+			if err := kafkaSvc.EnsureTopics(ctx); err != nil {
+				logger.Warn("failed to ensure Kafka topics", logging.Any("error", err.Error()))
+			}
 			conn.kafkaService = kafkaSvc
 			kafkaProducer = kafkaSvc
+			health.AddCheck(func(ctx context.Context) error {
+				return kafkaSvc.Ping(ctx)
+			})
 			logger.Info("Kafka connected", logging.Any("brokers", cfg.Kafka.GetBrokers()))
 		}
 	} else {

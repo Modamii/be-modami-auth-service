@@ -1,3 +1,8 @@
+app:
+  name: "be-modami-auth-service"
+  version: "1.0.0"
+  environment: "local"
+
 server:
   port: 8085
   shutdown_timeout: "15s"
@@ -33,15 +38,15 @@ redis:
     insecure_skip_verify: true
 
 kafka:
-  broker_list: "localhost:9096"
-  enable: false
+  broker_list: "localhost:9092"
+  enable: true
   tls_enable: false
   partition: 1
   partitioner: "random"
-  sasl_producer_username: "username"
-  sasl_producer_password: "password"
-  sasl_consumer_username: "username"
-  sasl_consumer_password: "password"
+  sasl_producer_username: ""
+  sasl_producer_password: ""
+  sasl_consumer_username: ""
+  sasl_consumer_password: ""
   user_activated_topic_name: "modami.auth.user.activated"
 
 keycloak:
