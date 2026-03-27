@@ -5,13 +5,13 @@ server:
 postgres:
   host: "localhost"
   port: 5432
-  schema: be-modami-auth-service
-  user_reader: "reader"
-  password_reader: "reader_password"
-  user_writer: "writer"
-  password_writer: "writer_password"
+  schema: public
+  user_reader: "postgres"
+  password_reader: "postgres_password"
+  user_writer: "postgres"
+  password_writer: "postgres_password"
   database: "be-modami-auth-service"
-  sslmode: require
+  sslmode: ""
   max_idle_conns: 5
   max_active_conns: 25
   max_conn_timeout: 10m
@@ -46,9 +46,9 @@ kafka:
 
 keycloak:
   base_url: "http://localhost:8180"
-  realm: "cenfit"
-  client_id: "cenfit-api"
-  client_secret: "bBNDVy0c5m1e7LyVC2aIaF6rrFqS4I5P"
+  realm: "modami"
+  client_id: "modami-api"
+  client_secret: "ATLdVwE3CH3ZYxzxUZurZPfemDgVEEGU"
   admin_user: "admin"
   admin_pass: "admin"
   redirect_url: "http://localhost:8085/api/v1/auth/social/callback"

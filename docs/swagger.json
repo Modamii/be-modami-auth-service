@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Authentication service powered by Keycloak",
-        "title": "Cenfit Auth Service API",
+        "description": "Authentication service for the Modami marketplace platform.",
+        "title": "Modami Auth Service API",
         "contact": {},
         "version": "1.0"
     },

@@ -10,9 +10,9 @@ import (
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
-// @title           Cenfit Auth Service API
+// @title           Modami Auth Service API
 // @version         1.0
-// @description     Authentication service powered by Keycloak
+// @description     Authentication service for the Modami marketplace platform.
 // @host            localhost:8085
 // @BasePath        /
 

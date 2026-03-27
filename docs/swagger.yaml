@@ -211,8 +211,8 @@ definitions:
 host: localhost:8085
 info:
   contact: {}
-  description: Authentication service powered by Keycloak
-  title: Cenfit Auth Service API
+  description: Authentication service for the Modami marketplace platform.
+  title: Modami Auth Service API
   version: "1.0"
 paths:
   /api/v1/admin/roles:
