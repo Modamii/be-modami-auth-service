@@ -102,7 +102,13 @@ docker-build-push:
   variables:
     DOCKER_HOST: tcp://docker:2375
   before_script:
-    - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_TOKEN"
+    - |
+      if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
+        echo "ERROR: DOCKERHUB_USERNAME or DOCKERHUB_TOKEN is not set."
+        echo "Go to GitLab > Settings > CI/CD > Variables and add them."
+        exit 1
+      fi
+    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
   script:
     - IMAGE_TAG="v1.0.$(echo $CI_COMMIT_SHA | cut -c1-7)"
     - echo "Building image $DOCKER_IMAGE:$IMAGE_TAG"
