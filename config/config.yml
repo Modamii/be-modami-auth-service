@@ -57,6 +57,7 @@ keycloak:
   admin_user: "admin"
   admin_pass: "admin"
   redirect_url: "http://localhost:8085/v1/auth-services/auth/social/callback"
+  frontend_callback_url: "http://localhost:3000/auth/social/callback"
 
 log:
   level: "info"

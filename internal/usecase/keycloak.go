@@ -13,13 +13,14 @@ import (
 )
 
 type KeycloakConfig struct {
-	BaseURL      string
-	Realm        string
-	ClientID     string
-	ClientSecret string
-	AdminUser    string
-	AdminPass    string
-	RedirectURL  string
+	BaseURL             string
+	Realm               string
+	ClientID            string
+	ClientSecret        string
+	AdminUser           string
+	AdminPass           string
+	RedirectURL         string
+	FrontendCallbackURL string
 }
 
 type KeycloakUseCase struct {

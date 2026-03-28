@@ -88,18 +88,25 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		logger.Warn("Kafka brokers not configured, events will be disabled")
 	}
 
+	// Redis cache service (used by social login state + OTP)
+	var cacheService *pkgredis.CacheService
+	if conn.redisClient != nil {
+		cacheService = pkgredis.NewCacheService(conn.redisClient)
+	}
+
 	// Keycloak
 	keycloakCfg := usecase.KeycloakConfig{
-		BaseURL:      cfg.Keycloak.BaseURL,
-		Realm:        cfg.Keycloak.Realm,
-		ClientID:     cfg.Keycloak.ClientID,
-		ClientSecret: cfg.Keycloak.ClientSecret,
-		AdminUser:    cfg.Keycloak.AdminUser,
-		AdminPass:    cfg.Keycloak.AdminPass,
-		RedirectURL:  cfg.Keycloak.RedirectURL,
+		BaseURL:             cfg.Keycloak.BaseURL,
+		Realm:               cfg.Keycloak.Realm,
+		ClientID:            cfg.Keycloak.ClientID,
+		ClientSecret:        cfg.Keycloak.ClientSecret,
+		AdminUser:           cfg.Keycloak.AdminUser,
+		AdminPass:           cfg.Keycloak.AdminPass,
+		RedirectURL:         cfg.Keycloak.RedirectURL,
+		FrontendCallbackURL: cfg.Keycloak.FrontendCallbackURL,
 	}
 	conn.keycloakUC = usecase.NewKeycloakUseCase(keycloakCfg, logger)
-	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, kafkaProducer)
+	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, kafkaProducer, cacheService)
 
 	// OIDC token verifier (optional)
 	if cfg.Keycloak.BaseURL != "" && cfg.Keycloak.Realm != "" {
@@ -119,8 +126,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	}
 
 	// OTP (requires Redis + Email config)
-	if conn.redisClient != nil && cfg.Email.SMTP.Host != "" {
-		cacheService := pkgredis.NewCacheService(conn.redisClient)
+	if cacheService != nil && cfg.Email.SMTP.Host != "" {
 		otpService := auth.NewOTPService(cacheService)
 		resetTokenService := auth.NewResetTokenService(cacheService)
 		emailService := email.NewEmailService(&email.EmailConfig{

@@ -9,6 +9,9 @@ type KafkaTopics struct {
 		Created string
 		Updated string
 	}
+	Auth struct {
+		SocialLogin string
+	}
 }
 
 func GetKafkaTopics() *KafkaTopics {
@@ -19,6 +22,11 @@ func GetKafkaTopics() *KafkaTopics {
 		}{
 			Created: "modami.auth.user.created",
 			Updated: "modami.auth.user.updated",
+		},
+		Auth: struct {
+			SocialLogin string
+		}{
+			SocialLogin: "modami.auth.social.login",
 		},
 	}
 }
@@ -36,6 +44,7 @@ func GetAllTopics() []string {
 	return []string{
 		topics.User.Created,
 		topics.User.Updated,
+		topics.Auth.SocialLogin,
 	}
 }
 

@@ -1,6 +1,10 @@
 package handler
 
 import (
+	"fmt"
+	"net/http"
+	"net/url"
+
 	"be-modami-auth-service/internal/entity"
 	"be-modami-auth-service/internal/usecase"
 	"be-modami-auth-service/pkg/ctxutil"
@@ -163,7 +167,7 @@ func (h *Auth) SocialLogin(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.authUC.SocialLoginURL(provider)
+	resp, err := h.authUC.SocialLoginURL(c.Request.Context(), provider)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -187,10 +191,25 @@ func (h *Auth) SocialCallback(c *gin.Context) {
 		response.Error(c, apperror.New(apperror.CodeBadRequest, "code query parameter is required"))
 		return
 	}
+	state := c.Query("state")
 
-	resp, err := h.authUC.ExchangeCode(c.Request.Context(), code)
+	resp, err := h.authUC.ExchangeCode(c.Request.Context(), code, state)
 	if err != nil {
 		response.Error(c, err)
+		return
+	}
+
+	// Redirect to frontend with tokens in URL fragment (not query params for security)
+	frontendURL := h.authUC.GetFrontendCallbackURL()
+	if frontendURL != "" {
+		fragment := fmt.Sprintf("access_token=%s&refresh_token=%s&expires_in=%d&token_type=%s",
+			url.QueryEscape(resp.AccessToken),
+			url.QueryEscape(resp.RefreshToken),
+			resp.ExpiresIn,
+			url.QueryEscape(resp.TokenType),
+		)
+		redirectURL := frontendURL + "#" + fragment
+		c.Redirect(http.StatusFound, redirectURL)
 		return
 	}
 

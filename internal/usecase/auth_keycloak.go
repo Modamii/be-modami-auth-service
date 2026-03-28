@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"be-modami-auth-service/internal/entity"
 	"be-modami-auth-service/pkg/kafka"
 	"be-modami-auth-service/pkg/kafka/events"
 
 	"github.com/Nerzal/gocloak/v13"
+	"github.com/google/uuid"
 	"gitlab.com/lifegoeson-libs/pkg-gokit/apperror"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
@@ -24,15 +26,24 @@ type AuthKeycloakUseCase struct {
 	logger   logging.Logger
 	admin    *KeycloakUseCase
 	producer kafka.Producer
+	cache    CacheService
 }
 
-func NewAuthKeycloakUseCase(cfg KeycloakConfig, admin *KeycloakUseCase, logger logging.Logger, producer kafka.Producer) *AuthKeycloakUseCase {
+// CacheService is an optional dependency for state management (social login CSRF).
+type CacheService interface {
+	SetJSON(ctx context.Context, key string, value any, ttl time.Duration) error
+	GetJSON(ctx context.Context, key string, dest any) error
+	Delete(ctx context.Context, key string) error
+}
+
+func NewAuthKeycloakUseCase(cfg KeycloakConfig, admin *KeycloakUseCase, logger logging.Logger, producer kafka.Producer, cache CacheService) *AuthKeycloakUseCase {
 	return &AuthKeycloakUseCase{
 		client:   gocloak.NewClient(cfg.BaseURL),
 		cfg:      cfg,
 		logger:   logger,
 		admin:    admin,
 		producer: producer,
+		cache:    cache,
 	}
 }
 
@@ -155,24 +166,51 @@ var allowedProviders = map[string]bool{
 	"github":   true,
 }
 
-func (uc *AuthKeycloakUseCase) SocialLoginURL(provider string) (*entity.SocialLoginResponse, error) {
+func (uc *AuthKeycloakUseCase) SocialLoginURL(ctx context.Context, provider string) (*entity.SocialLoginResponse, error) {
 	if !allowedProviders[provider] {
 		return nil, apperror.New(apperror.CodeBadRequest, "unsupported provider: "+provider)
 	}
 
+	// Generate CSRF state and store in Redis
+	state := uuid.NewString()
+	stateData := map[string]string{
+		"provider": provider,
+	}
+	if uc.cache != nil {
+		if err := uc.cache.SetJSON(ctx, "social:state:"+state, stateData, 10*time.Minute); err != nil {
+			uc.logger.Error("failed to store social login state", err)
+			return nil, apperror.New(apperror.CodeInternal, "failed to initiate social login").WithError(err)
+		}
+	}
+
 	authURL := fmt.Sprintf(
-		"%s/realms/%s/protocol/openid-connect/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=openid&kc_idp_hint=%s",
+		"%s/realms/%s/protocol/openid-connect/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=openid&kc_idp_hint=%s&state=%s",
 		uc.cfg.BaseURL,
 		uc.cfg.Realm,
 		url.QueryEscape(uc.cfg.ClientID),
 		url.QueryEscape(uc.cfg.RedirectURL),
 		url.QueryEscape(provider),
+		url.QueryEscape(state),
 	)
 
 	return &entity.SocialLoginResponse{AuthURL: authURL}, nil
 }
 
-func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code string) (*entity.LoginResponse, error) {
+func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state string) (*entity.LoginResponse, error) {
+	// Validate CSRF state
+	if state == "" {
+		return nil, apperror.New(apperror.CodeBadRequest, "missing state parameter")
+	}
+	var stateData map[string]string
+	if uc.cache != nil {
+		if err := uc.cache.GetJSON(ctx, "social:state:"+state, &stateData); err != nil {
+			uc.logger.Debug("invalid or expired social login state", logging.String("state", state))
+			return nil, apperror.New(apperror.CodeBadRequest, "invalid or expired state parameter")
+		}
+		// Delete state immediately (one-time use)
+		_ = uc.cache.Delete(ctx, "social:state:"+state)
+	}
+
 	tokenURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", uc.cfg.BaseURL, uc.cfg.Realm)
 
 	data := url.Values{
@@ -210,12 +248,28 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code string) (*
 		return nil, apperror.New(apperror.CodeBadGateway, "failed to parse keycloak response").WithError(err)
 	}
 
+	// Emit Kafka social login event
+	if uc.producer != nil && stateData != nil {
+		provider := stateData["provider"]
+		topics := kafka.GetKafkaTopics()
+		payload := events.NewSocialLoginPayload(provider, "")
+		uc.producer.EmitAsync(ctx, topics.Auth.SocialLogin, &kafka.ProducerMessage{
+			Key:   state,
+			Value: payload,
+		})
+	}
+
 	return &entity.LoginResponse{
 		AccessToken:  tokenResp.AccessToken,
 		RefreshToken: tokenResp.RefreshToken,
 		ExpiresIn:    tokenResp.ExpiresIn,
 		TokenType:    tokenResp.TokenType,
 	}, nil
+}
+
+// GetFrontendCallbackURL returns the configured frontend callback URL.
+func (uc *AuthKeycloakUseCase) GetFrontendCallbackURL() string {
+	return uc.cfg.FrontendCallbackURL
 }
 
 // FindUserByEmail returns the Keycloak user ID for the given email, or error if not found.

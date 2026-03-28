@@ -113,13 +113,14 @@ func (s ServerConfig) GetShutdownTimeout() time.Duration {
 }
 
 type KeycloakConfig struct {
-	BaseURL      string `mapstructure:"base_url"`
-	Realm        string `mapstructure:"realm"`
-	ClientID     string `mapstructure:"client_id"`
-	ClientSecret string `mapstructure:"client_secret"`
-	AdminUser    string `mapstructure:"admin_user"`
-	AdminPass    string `mapstructure:"admin_pass"`
-	RedirectURL  string `mapstructure:"redirect_url"`
+	BaseURL                string `mapstructure:"base_url"`
+	Realm                  string `mapstructure:"realm"`
+	ClientID               string `mapstructure:"client_id"`
+	ClientSecret           string `mapstructure:"client_secret"`
+	AdminUser              string `mapstructure:"admin_user"`
+	AdminPass              string `mapstructure:"admin_pass"`
+	RedirectURL            string `mapstructure:"redirect_url"`
+	FrontendCallbackURL    string `mapstructure:"frontend_callback_url"`
 }
 
 type EmailConfig struct {

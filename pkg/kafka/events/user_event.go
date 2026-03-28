@@ -47,3 +47,21 @@ func NewUserUpdatedPayload(userID, email, firstName, lastName string) *UserUpdat
 		LastName:  lastName,
 	}
 }
+
+// SocialLoginPayload is the payload for the auth.social.login event.
+type SocialLoginPayload struct {
+	BaseEventPayload
+	Provider string `json:"provider"`
+	Email    string `json:"email"`
+}
+
+func NewSocialLoginPayload(provider, email string) *SocialLoginPayload {
+	return &SocialLoginPayload{
+		BaseEventPayload: BaseEventPayload{
+			Type:      "auth.social.login",
+			Timestamp: time.Now(),
+		},
+		Provider: provider,
+		Email:    email,
+	}
+}
