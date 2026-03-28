@@ -33,7 +33,7 @@ build:
 trivy-scan:
   stage: security
   image:
-    name: aquasec/trivy:latest
+    name: ghcr.io/aquasecurity/trivy:latest
     entrypoint: [""]
   script:
     - trivy fs --format table -o fs-report.json --exit-code 0 .
