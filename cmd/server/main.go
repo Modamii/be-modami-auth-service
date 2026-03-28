@@ -5,7 +5,8 @@ import (
 	"log"
 
 	"be-modami-auth-service/config"
-	"be-modami-auth-service/pkg/logger"
+
+	"gitlab.com/lifegoeson-libs/pkg-logging/logger"
 
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )

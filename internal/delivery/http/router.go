@@ -18,6 +18,7 @@ type RouterDeps struct {
 	Auth     *handler.Auth
 	User     *handler.User
 	Role     *handler.Role
+	OTP      *handler.OTPHandler
 	Verifier usecase.TokenVerifier
 	Logger   logging.Logger
 }
@@ -38,7 +39,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	r.GET("/readyz", deps.Health.Readiness)
 
 	// Auth (public — no OIDC)
-	auth := r.Group("/api/v1/auth")
+	auth := r.Group("/v1/auth-services/auth")
 	{
 		auth.POST("/login", deps.Auth.Login)
 		auth.POST("/register", deps.Auth.Register)
@@ -47,16 +48,23 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		auth.POST("/forgot-password", deps.Auth.ForgotPassword)
 		auth.GET("/social/login", deps.Auth.SocialLogin)
 		auth.GET("/social/callback", deps.Auth.SocialCallback)
+
+		// Unified OTP endpoints (purpose dispatched inside handler)
+		if deps.OTP != nil {
+			auth.POST("/otp/send", deps.OTP.SendOTP)
+			auth.POST("/otp/verify", deps.OTP.VerifyOTP)
+			auth.POST("/reset-password", deps.OTP.ResetPassword)
+		}
 	}
 
 	// Protected API
-	api := r.Group("/api/v1")
+	api := r.Group("/v1/auth-services")
 	if deps.Verifier != nil {
 		api.Use(middleware.OIDC(deps.Verifier))
 	}
 	{
 		api.GET("/me", deps.User.Me)
-		api.PUT("/me/password", deps.Auth.ChangePassword)
+		api.PUT("/auth/password", deps.Auth.ChangePassword)
 		api.PUT("/me/profile", deps.Auth.UpdateProfile)
 
 		admin := api.Group("/admin", middleware.RequireRealmRole("admin"))

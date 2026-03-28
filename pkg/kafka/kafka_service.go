@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"be-modami-auth-service/config"
-	"be-modami-auth-service/pkg/logger"
 
 	"github.com/twmb/franz-go/pkg/kadm"
 	"github.com/twmb/franz-go/pkg/kgo"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
+	"gitlab.com/lifegoeson-libs/pkg-logging/logger"
 )
 
 type KafkaService struct {

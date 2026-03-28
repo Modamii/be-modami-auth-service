@@ -27,7 +27,7 @@ func NewAuth(authUC *usecase.AuthKeycloakUseCase) *Auth {
 // @Param        request body entity.LoginRequest true "Login credentials"
 // @Success      200 {object} response.Response{data=entity.LoginResponse}
 // @Failure      401 {object} response.Response
-// @Router       /api/v1/auth/login [post]
+// @Router       /v1/auth-services/auth/login [post]
 func (h *Auth) Login(c *gin.Context) {
 	var req entity.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -54,7 +54,7 @@ func (h *Auth) Login(c *gin.Context) {
 // @Success      201 {object} response.Response{data=entity.RegisterResponse}
 // @Failure      400 {object} response.Response
 // @Failure      409 {object} response.Response
-// @Router       /api/v1/auth/register [post]
+// @Router       /v1/auth-services/auth/register [post]
 func (h *Auth) Register(c *gin.Context) {
 	var req entity.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -80,7 +80,7 @@ func (h *Auth) Register(c *gin.Context) {
 // @Param        request body entity.LogoutRequest true "Refresh token"
 // @Success      204
 // @Failure      400 {object} response.Response
-// @Router       /api/v1/auth/logout [post]
+// @Router       /v1/auth-services/auth/logout [post]
 func (h *Auth) Logout(c *gin.Context) {
 	var req entity.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -105,7 +105,7 @@ func (h *Auth) Logout(c *gin.Context) {
 // @Param        request body entity.RefreshRequest true "Refresh token"
 // @Success      200 {object} response.Response{data=entity.LoginResponse}
 // @Failure      401 {object} response.Response
-// @Router       /api/v1/auth/refresh [post]
+// @Router       /v1/auth-services/auth/refresh [post]
 func (h *Auth) RefreshToken(c *gin.Context) {
 	var req entity.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -131,7 +131,7 @@ func (h *Auth) RefreshToken(c *gin.Context) {
 // @Param        request body entity.ForgotPasswordRequest true "User email"
 // @Success      200 {object} response.Response
 // @Failure      400 {object} response.Response
-// @Router       /api/v1/auth/forgot-password [post]
+// @Router       /v1/auth-services/auth/forgot-password [post]
 func (h *Auth) ForgotPassword(c *gin.Context) {
 	var req entity.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -155,7 +155,7 @@ func (h *Auth) ForgotPassword(c *gin.Context) {
 // @Param        provider query string true "Social provider (google, facebook, github)"
 // @Success      200 {object} response.Response{data=entity.SocialLoginResponse}
 // @Failure      400 {object} response.Response
-// @Router       /api/v1/auth/social/login [get]
+// @Router       /v1/auth-services/auth/social/login [get]
 func (h *Auth) SocialLogin(c *gin.Context) {
 	provider := c.Query("provider")
 	if provider == "" {
@@ -180,7 +180,7 @@ func (h *Auth) SocialLogin(c *gin.Context) {
 // @Param        code query string true "Authorization code"
 // @Success      200 {object} response.Response{data=entity.LoginResponse}
 // @Failure      401 {object} response.Response
-// @Router       /api/v1/auth/social/callback [get]
+// @Router       /v1/auth-services/auth/social/callback [get]
 func (h *Auth) SocialCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
@@ -200,14 +200,14 @@ func (h *Auth) SocialCallback(c *gin.Context) {
 // ChangePassword godoc
 // @Summary      Change password
 // @Description  Change the authenticated user's password
-// @Tags         user
+// @Tags         auth
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        request body entity.ChangePasswordRequest true "Password change data"
 // @Success      204
 // @Failure      401 {object} response.Response
-// @Router       /api/v1/me/password [put]
+// @Router       /v1/auth-services/auth/password [put]
 func (h *Auth) ChangePassword(c *gin.Context) {
 	claims, ok := ctxutil.GetClaims(c)
 	if !ok {
@@ -229,18 +229,7 @@ func (h *Auth) ChangePassword(c *gin.Context) {
 	response.NoContent(c)
 }
 
-// UpdateProfile godoc
-// @Summary      Update profile
-// @Description  Update the authenticated user's profile information
-// @Tags         user
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        request body entity.UpdateProfileRequest true "Profile data"
-// @Success      204
-// @Failure      400 {object} response.Response
-// @Failure      401 {object} response.Response
-// @Router       /api/v1/me/profile [put]
+
 func (h *Auth) UpdateProfile(c *gin.Context) {
 	claims, ok := ctxutil.GetClaims(c)
 	if !ok {

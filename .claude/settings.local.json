@@ -19,7 +19,12 @@
       "Bash(kill:*)",
       "Bash(make swagger:*)",
       "Bash(grep:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(go vet:*)",
+      "Bash(redis-cli:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker exec:*)"
     ]
   }
 }

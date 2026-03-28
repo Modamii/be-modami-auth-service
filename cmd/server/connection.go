@@ -2,14 +2,20 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"be-modami-auth-service/config"
 	"be-modami-auth-service/internal/delivery/http/handler"
 	"be-modami-auth-service/internal/usecase"
+	"be-modami-auth-service/pkg/auth"
 	"be-modami-auth-service/pkg/db"
+	"be-modami-auth-service/pkg/email"
 	"be-modami-auth-service/pkg/kafka"
+	pkgredis "be-modami-auth-service/pkg/storage/redis"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
@@ -19,6 +25,8 @@ type connections struct {
 	authKeycloakUC *usecase.AuthKeycloakUseCase
 	tokenVerifier  usecase.TokenVerifier
 	kafkaService   *kafka.KafkaService
+	otpUseCase     usecase.OTPUseCase
+	redisClient    *redis.Client
 }
 
 func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger logging.Logger) (*connections, error) {
@@ -37,6 +45,26 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		logger.Info("database connected")
 	} else {
 		logger.Warn("postgres host not set, skipping database")
+	}
+
+	// Redis
+	if cfg.Redis.Host != "" {
+		conn.redisClient = redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
+			Password: cfg.Redis.Pass,
+			Username: cfg.Redis.UserName,
+			DB:       cfg.Redis.Database,
+			PoolSize: cfg.Redis.PoolSize,
+		})
+		if err := conn.redisClient.Ping(ctx).Err(); err != nil {
+			return nil, fmt.Errorf("redis ping: %w", err)
+		}
+		health.AddCheck(func(ctx context.Context) error {
+			return conn.redisClient.Ping(ctx).Err()
+		})
+		logger.Info("Redis connected", logging.String("addr", fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)))
+	} else {
+		logger.Warn("redis host not set, OTP features will be disabled")
 	}
 
 	// Kafka (optional)
@@ -90,6 +118,32 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		logger.Warn("Keycloak not configured, OIDC middleware disabled")
 	}
 
+	// OTP (requires Redis + Email config)
+	if conn.redisClient != nil && cfg.Email.SMTP.Host != "" {
+		cacheService := pkgredis.NewCacheService(conn.redisClient)
+		otpService := auth.NewOTPService(cacheService)
+		resetTokenService := auth.NewResetTokenService(cacheService)
+		emailService := email.NewEmailService(&email.EmailConfig{
+			SMTPHost:     cfg.Email.SMTP.Host,
+			SMTPPort:     strconv.Itoa(cfg.Email.SMTP.Port),
+			SMTPUsername: cfg.Email.SMTP.Username,
+			SMTPPassword: cfg.Email.SMTP.Password,
+			FromEmail:    cfg.Email.SMTP.FromEmail,
+			FromName:     cfg.Email.SMTP.FromName,
+		}, ctx)
+
+		conn.otpUseCase = usecase.NewOTPUseCase(
+			otpService,
+			resetTokenService,
+			emailService,
+			conn.authKeycloakUC,
+			cacheService,
+		)
+		logger.Info("OTP service initialized")
+	} else {
+		logger.Warn("OTP disabled (requires Redis + Email config)")
+	}
+
 	return conn, nil
 }
 
@@ -99,5 +153,8 @@ func (c *connections) Close() {
 	}
 	if c.kafkaService != nil {
 		c.kafkaService.Close()
+	}
+	if c.redisClient != nil {
+		c.redisClient.Close()
 	}
 }

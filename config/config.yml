@@ -29,8 +29,8 @@ redis:
   rate_limit_database: 5
   ttl: 259200s
   pool_size: 100
-  pass: "password"
-  user_name: "username"
+  pass: ""
+  user_name: ""
   write_timeout: 600s
   read_timeout: 600s
   dial_timeout: 600s
@@ -56,8 +56,21 @@ keycloak:
   client_secret: "vcO2q8H8Vxrx0ZRvmQG2EQaFcJQJNZo1"
   admin_user: "admin"
   admin_pass: "admin"
-  redirect_url: "http://localhost:8085/api/v1/auth/social/callback"
+  redirect_url: "http://localhost:8085/v1/auth-services/auth/social/callback"
 
 log:
   level: "info"
   format: "console"
+
+email:
+  smtp:
+    host: "smtp.gmail.com"
+    port: 587
+    username: "techbross.dev@gmail.com"
+    password: "zumyixhgsibepkzc"
+    from_email: "techbross.dev@gmail.com"
+    from_name: "Techinsights"
+  templates:
+    welcome: "./templates/email/welcome.html"
+    password_reset: "./templates/email/password_reset.html"
+    verification: "./templates/email/verification.html"

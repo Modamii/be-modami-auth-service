@@ -9,10 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"be-modami-auth-service/pkg/logger"
-
 	"github.com/twmb/franz-go/pkg/kgo"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
+	"gitlab.com/lifegoeson-libs/pkg-logging/logger"
 )
 
 // RunConsumer creates a simple Kafka consumer that processes messages with a callback.

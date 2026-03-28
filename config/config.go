@@ -16,6 +16,7 @@ type Config struct {
 	Keycloak KeycloakConfig `mapstructure:"keycloak"`
 	Log      LogConfig      `mapstructure:"log"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
+	Email    EmailConfig    `mapstructure:"email"`
 }
 
 type AppConfig struct {
@@ -119,6 +120,26 @@ type KeycloakConfig struct {
 	AdminUser    string `mapstructure:"admin_user"`
 	AdminPass    string `mapstructure:"admin_pass"`
 	RedirectURL  string `mapstructure:"redirect_url"`
+}
+
+type EmailConfig struct {
+	SMTP      SMTPConfig      `mapstructure:"smtp"`
+	Templates TemplatesConfig `mapstructure:"templates"`
+}
+
+type SMTPConfig struct {
+	Host      string `mapstructure:"host"`
+	Port      int    `mapstructure:"port"`
+	Username  string `mapstructure:"username"`
+	Password  string `mapstructure:"password"`
+	FromEmail string `mapstructure:"from_email"`
+	FromName  string `mapstructure:"from_name"`
+}
+
+type TemplatesConfig struct {
+	Welcome       string `mapstructure:"welcome"`
+	PasswordReset string `mapstructure:"password_reset"`
+	Verification  string `mapstructure:"verification"`
 }
 
 type LogConfig struct {

@@ -218,6 +218,128 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code string) (*
 	}, nil
 }
 
+// FindUserByEmail returns the Keycloak user ID for the given email, or error if not found.
+func (uc *AuthKeycloakUseCase) FindUserByEmail(ctx context.Context, email string) (string, error) {
+	adminToken, err := uc.admin.getAdminToken(ctx)
+	if err != nil {
+		return "", apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+	}
+	exact := true
+	users, err := uc.client.GetUsers(ctx, adminToken, uc.cfg.Realm, gocloak.GetUsersParams{
+		Email: &email,
+		Exact: &exact,
+	})
+	if err != nil {
+		return "", apperror.New(apperror.CodeBadGateway, "failed to find user").WithError(err)
+	}
+	if len(users) == 0 {
+		return "", apperror.New(apperror.CodeNotFound, "user not found")
+	}
+	return derefStr(users[0].ID), nil
+}
+
+// RegisterWithVerifiedEmail creates a user in Keycloak with emailVerified=true,
+// sets the password, emits a Kafka event, and returns OAuth2 tokens.
+func (uc *AuthKeycloakUseCase) RegisterWithVerifiedEmail(ctx context.Context, req entity.RegisterRequest) (*entity.LoginResponse, error) {
+	adminToken, err := uc.admin.getAdminToken(ctx)
+	if err != nil {
+		return nil, apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+	}
+
+	enabled := true
+	emailVerified := true
+	user := gocloak.User{
+		Username:      &req.Username,
+		Email:         &req.Email,
+		FirstName:     &req.FirstName,
+		LastName:      &req.LastName,
+		Enabled:       &enabled,
+		EmailVerified: &emailVerified,
+	}
+
+	userID, err := uc.client.CreateUser(ctx, adminToken, uc.cfg.Realm, user)
+	if err != nil {
+		uc.logger.Error("failed to create user", err)
+		return nil, apperror.New(apperror.CodeConflict, "user already exists or invalid data").WithError(err)
+	}
+
+	if err := uc.client.SetPassword(ctx, adminToken, userID, uc.cfg.Realm, req.Password, false); err != nil {
+		uc.logger.Error("failed to set password", err, logging.String("user_id", userID))
+		return nil, apperror.New(apperror.CodeInternal, "failed to set password").WithError(err)
+	}
+
+	if uc.producer != nil {
+		topics := kafka.GetKafkaTopics()
+		payload := events.NewUserCreatedPayload(userID, req.Email, req.Username, req.FirstName, req.LastName)
+		uc.producer.EmitAsync(ctx, topics.User.Created, &kafka.ProducerMessage{
+			Key:   userID,
+			Value: payload,
+		})
+	}
+
+	// Issue token via login
+	token, err := uc.client.Login(ctx, uc.cfg.ClientID, uc.cfg.ClientSecret, uc.cfg.Realm, req.Username, req.Password)
+	if err != nil {
+		uc.logger.Error("failed to login after registration", err)
+		return nil, apperror.New(apperror.CodeInternal, "registration succeeded but login failed").WithError(err)
+	}
+
+	return &entity.LoginResponse{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		ExpiresIn:    token.ExpiresIn,
+		TokenType:    token.TokenType,
+	}, nil
+}
+
+// SetPasswordByUserID resets a user's password via admin token.
+func (uc *AuthKeycloakUseCase) SetPasswordByUserID(ctx context.Context, userID, newPassword string) error {
+	adminToken, err := uc.admin.getAdminToken(ctx)
+	if err != nil {
+		return apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+	}
+	if err := uc.client.SetPassword(ctx, adminToken, userID, uc.cfg.Realm, newPassword, false); err != nil {
+		uc.logger.Error("failed to reset password", err, logging.String("user_id", userID))
+		return apperror.New(apperror.CodeInternal, "failed to reset password").WithError(err)
+	}
+	return nil
+}
+
+// UpdateUserEmail updates a user's email in Keycloak and marks it as verified.
+func (uc *AuthKeycloakUseCase) UpdateUserEmail(ctx context.Context, userID, newEmail string) error {
+	adminToken, err := uc.admin.getAdminToken(ctx)
+	if err != nil {
+		return apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+	}
+	user, err := uc.client.GetUserByID(ctx, adminToken, uc.cfg.Realm, userID)
+	if err != nil {
+		return apperror.New(apperror.CodeNotFound, "user not found").WithError(err)
+	}
+	emailVerified := true
+	user.Email = &newEmail
+	user.Username = &newEmail
+	user.EmailVerified = &emailVerified
+	if err := uc.client.UpdateUser(ctx, adminToken, uc.cfg.Realm, *user); err != nil {
+		uc.logger.Error("failed to update user email", err, logging.String("user_id", userID))
+		return apperror.New(apperror.CodeInternal, "failed to update email").WithError(err)
+	}
+
+	if uc.producer != nil {
+		topics := kafka.GetKafkaTopics()
+		payload := events.NewUserUpdatedPayload(userID,
+			newEmail,
+			derefStr(user.FirstName),
+			derefStr(user.LastName),
+		)
+		uc.producer.EmitAsync(ctx, topics.User.Updated, &kafka.ProducerMessage{
+			Key:   userID,
+			Value: payload,
+		})
+	}
+
+	return nil
+}
+
 func (uc *AuthKeycloakUseCase) ChangePassword(ctx context.Context, userID, oldPassword, newPassword string) error {
 	_, err := uc.client.Login(ctx, uc.cfg.ClientID, uc.cfg.ClientSecret, uc.cfg.Realm, userID, oldPassword)
 	if err != nil {
