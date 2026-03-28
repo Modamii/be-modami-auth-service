@@ -1,4 +1,4 @@
-basePath: /
+basePath: /v1/auth-services
 definitions:
   apperror.Code:
     enum:
@@ -306,43 +306,7 @@ info:
   title: Modami Auth Service API
   version: "1.0"
 paths:
-  /healthz:
-    get:
-      description: Returns 200 if the service is running
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Liveness check
-      tags:
-      - health
-  /readyz:
-    get:
-      description: Returns 200 if all dependencies (DB, Keycloak) are healthy
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "503":
-          description: Service Unavailable
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Readiness check
-      tags:
-      - health
-  /v1/auth-services/admin/roles:
+  /admin/roles:
     get:
       description: Returns all realm roles from Keycloak (admin only)
       produces:
@@ -365,7 +329,7 @@ paths:
       summary: List realm roles
       tags:
       - admin
-  /v1/auth-services/admin/users/{id}/roles:
+  /admin/users/{id}/roles:
     delete:
       consumes:
       - application/json
@@ -462,7 +426,7 @@ paths:
       summary: Assign roles to user
       tags:
       - admin
-  /v1/auth-services/auth/forgot-password:
+  /auth/forgot-password:
     post:
       consumes:
       - application/json
@@ -488,7 +452,7 @@ paths:
       summary: Forgot password
       tags:
       - auth
-  /v1/auth-services/auth/login:
+  /auth/login:
     post:
       consumes:
       - application/json
@@ -519,7 +483,7 @@ paths:
       summary: User login
       tags:
       - auth
-  /v1/auth-services/auth/logout:
+  /auth/logout:
     post:
       consumes:
       - application/json
@@ -543,7 +507,7 @@ paths:
       summary: Logout user
       tags:
       - auth
-  /v1/auth-services/auth/otp/send:
+  /auth/otp/send:
     post:
       consumes:
       - application/json
@@ -572,7 +536,7 @@ paths:
       summary: Send OTP
       tags:
       - otp
-  /v1/auth-services/auth/otp/verify:
+  /auth/otp/verify:
     post:
       consumes:
       - application/json
@@ -601,7 +565,7 @@ paths:
       summary: Verify OTP
       tags:
       - otp
-  /v1/auth-services/auth/password:
+  /auth/password:
     put:
       consumes:
       - application/json
@@ -627,7 +591,7 @@ paths:
       summary: Change password
       tags:
       - auth
-  /v1/auth-services/auth/refresh:
+  /auth/refresh:
     post:
       consumes:
       - application/json
@@ -658,7 +622,7 @@ paths:
       summary: Refresh access token
       tags:
       - auth
-  /v1/auth-services/auth/register:
+  /auth/register:
     post:
       consumes:
       - application/json
@@ -693,7 +657,7 @@ paths:
       summary: Register new user
       tags:
       - auth
-  /v1/auth-services/auth/reset-password:
+  /auth/reset-password:
     post:
       consumes:
       - application/json
@@ -722,7 +686,7 @@ paths:
       summary: Reset password with reset token
       tags:
       - auth
-  /v1/auth-services/auth/social/callback:
+  /auth/social/callback:
     get:
       description: Exchanges the authorization code from Keycloak for JWT tokens
       parameters:
@@ -750,7 +714,7 @@ paths:
       summary: Social login callback
       tags:
       - auth
-  /v1/auth-services/auth/social/login:
+  /auth/social/login:
     get:
       description: Returns the Keycloak authorization URL for the given social provider
       parameters:
@@ -778,6 +742,42 @@ paths:
       summary: Social login
       tags:
       - auth
+  /healthz:
+    get:
+      description: Returns 200 if the service is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Liveness check
+      tags:
+      - health
+  /readyz:
+    get:
+      description: Returns 200 if all dependencies (DB, Keycloak) are healthy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Readiness check
+      tags:
+      - health
 securityDefinitions:
   BearerAuth:
     description: 'Enter your token in the format: **Bearer {token}**'

@@ -33,7 +33,7 @@ func NewOTPHandler(otpUsecase usecase.OTPUseCase, validator *validator.Validate)
 // @Param        body body dto.SendOTPRequest true "Email and purpose"
 // @Success      200 {object} map[string]interface{}
 // @Failure      400 {object} map[string]interface{}
-// @Router       /v1/auth-services/auth/otp/send [post]
+// @Router       /auth/otp/send [post]
 func (h *OTPHandler) SendOTP(c *gin.Context) {
 	var req dto.SendOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -72,7 +72,7 @@ func (h *OTPHandler) SendOTP(c *gin.Context) {
 // @Param        body body dto.VerifyOTPRequest true "Email, OTP, purpose, and optional fields"
 // @Success      200 {object} map[string]interface{}
 // @Failure      400 {object} map[string]interface{}
-// @Router       /v1/auth-services/auth/otp/verify [post]
+// @Router       /auth/otp/verify [post]
 func (h *OTPHandler) VerifyOTP(c *gin.Context) {
 	var req dto.VerifyOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -121,7 +121,7 @@ func (h *OTPHandler) VerifyOTP(c *gin.Context) {
 // @Param        body body dto.ResetPasswordRequest true "Reset token and new password"
 // @Success      200 {object} map[string]interface{}
 // @Failure      400 {object} map[string]interface{}
-// @Router       /v1/auth-services/auth/reset-password [post]
+// @Router       /auth/reset-password [post]
 func (h *OTPHandler) ResetPassword(c *gin.Context) {
 	var req dto.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

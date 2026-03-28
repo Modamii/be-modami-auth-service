@@ -48,6 +48,9 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		auth.POST("/forgot-password", deps.Auth.ForgotPassword)
 		auth.GET("/social/login", deps.Auth.SocialLogin)
 		auth.GET("/social/callback", deps.Auth.SocialCallback)
+		auth.GET("/auth/me", deps.User.Me)
+		auth.PUT("/auth/password", deps.Auth.ChangePassword)
+		auth.PUT("/auth/profile", deps.Auth.UpdateProfile)
 
 		// Unified OTP endpoints (purpose dispatched inside handler)
 		if deps.OTP != nil {
@@ -63,10 +66,6 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		api.Use(middleware.OIDC(deps.Verifier))
 	}
 	{
-		api.GET("/me", deps.User.Me)
-		api.PUT("/auth/password", deps.Auth.ChangePassword)
-		api.PUT("/me/profile", deps.Auth.UpdateProfile)
-
 		admin := api.Group("/admin", middleware.RequireRealmRole("admin"))
 		{
 			admin.GET("/users", deps.User.List)

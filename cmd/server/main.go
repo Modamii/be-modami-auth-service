@@ -15,7 +15,7 @@ import (
 // @version         1.0
 // @description     Authentication service for the Modami marketplace platform.
 // @host            localhost:8085
-// @BasePath        /
+// @BasePath        /v1/auth-services
 
 // @securityDefinitions.apikey BearerAuth
 // @in header

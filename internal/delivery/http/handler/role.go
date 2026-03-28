@@ -26,7 +26,7 @@ func NewRole(keycloak *usecase.KeycloakUseCase) *Role {
 // @Success      200 {object} response.Response
 // @Failure      401 {object} response.Response
 // @Failure      403 {object} response.Response
-// @Router       /v1/auth-services/admin/roles [get]
+// @Router       /admin/roles [get]
 func (h *Role) ListRealmRoles(c *gin.Context) {
 	roles, err := h.keycloak.GetRealmRoles(c.Request.Context())
 	if err != nil {
@@ -46,7 +46,7 @@ func (h *Role) ListRealmRoles(c *gin.Context) {
 // @Success      200 {object} response.Response
 // @Failure      401 {object} response.Response
 // @Failure      403 {object} response.Response
-// @Router       /v1/auth-services/admin/users/{id}/roles [get]
+// @Router       /admin/users/{id}/roles [get]
 func (h *Role) GetUserRoles(c *gin.Context) {
 	userID := c.Param("id")
 	if userID == "" {
@@ -78,7 +78,7 @@ type assignRolesRequest struct {
 // @Success      204
 // @Failure      401 {object} response.Response
 // @Failure      403 {object} response.Response
-// @Router       /v1/auth-services/admin/users/{id}/roles [post]
+// @Router       /admin/users/{id}/roles [post]
 func (h *Role) AssignRoles(c *gin.Context) {
 	userID := c.Param("id")
 	if userID == "" {
@@ -112,7 +112,7 @@ func (h *Role) AssignRoles(c *gin.Context) {
 // @Success      204
 // @Failure      401 {object} response.Response
 // @Failure      403 {object} response.Response
-// @Router       /v1/auth-services/admin/users/{id}/roles [delete]
+// @Router       /admin/users/{id}/roles [delete]
 func (h *Role) RemoveRoles(c *gin.Context) {
 	userID := c.Param("id")
 	if userID == "" {

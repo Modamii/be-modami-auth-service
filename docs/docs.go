@@ -15,62 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/healthz": {
-            "get": {
-                "description": "Returns 200 if the service is running",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Liveness check",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/readyz": {
-            "get": {
-                "description": "Returns 200 if all dependencies (DB, Keycloak) are healthy",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Readiness check",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "503": {
-                        "description": "Service Unavailable",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/auth-services/admin/roles": {
+        "/admin/roles": {
             "get": {
                 "security": [
                     {
@@ -107,7 +52,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/admin/users/{id}/roles": {
+        "/admin/users/{id}/roles": {
             "get": {
                 "security": [
                     {
@@ -259,7 +204,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/forgot-password": {
+        "/auth/forgot-password": {
             "post": {
                 "description": "Send a password reset email to the user",
                 "consumes": [
@@ -299,7 +244,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/login": {
+        "/auth/login": {
             "post": {
                 "description": "Authenticate user with username and password, returns JWT tokens",
                 "consumes": [
@@ -351,7 +296,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/logout": {
+        "/auth/logout": {
             "post": {
                 "description": "Invalidate refresh token to end the session",
                 "consumes": [
@@ -388,7 +333,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/otp/send": {
+        "/auth/otp/send": {
             "post": {
                 "description": "Send OTP to the given email. Purpose: register, forgot-password, change-email.",
                 "consumes": [
@@ -430,7 +375,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/otp/verify": {
+        "/auth/otp/verify": {
             "post": {
                 "description": "Verify OTP. Response depends on purpose: register returns tokens, forgot-password returns reset_token, change-email returns success.",
                 "consumes": [
@@ -472,7 +417,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/password": {
+        "/auth/password": {
             "put": {
                 "security": [
                     {
@@ -514,7 +459,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/refresh": {
+        "/auth/refresh": {
             "post": {
                 "description": "Exchange refresh token for a new access token",
                 "consumes": [
@@ -566,7 +511,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/register": {
+        "/auth/register": {
             "post": {
                 "description": "Create a new user account in Keycloak",
                 "consumes": [
@@ -624,7 +569,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/reset-password": {
+        "/auth/reset-password": {
             "post": {
                 "description": "Use the one-time reset token (from forgot-password verify) to set a new password",
                 "consumes": [
@@ -666,7 +611,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/social/callback": {
+        "/auth/social/callback": {
             "get": {
                 "description": "Exchanges the authorization code from Keycloak for JWT tokens",
                 "produces": [
@@ -713,7 +658,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth-services/auth/social/login": {
+        "/auth/social/login": {
             "get": {
                 "description": "Returns the Keycloak authorization URL for the given social provider",
                 "produces": [
@@ -755,6 +700,61 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "description": "Returns 200 if the service is running",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Liveness check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/readyz": {
+            "get": {
+                "description": "Returns 200 if all dependencies (DB, Keycloak) are healthy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Readiness check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -1197,7 +1197,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8085",
-	BasePath:         "/",
+	BasePath:         "/v1/auth-services",
 	Schemes:          []string{},
 	Title:            "Modami Auth Service API",
 	Description:      "Authentication service for the Modami marketplace platform.",
