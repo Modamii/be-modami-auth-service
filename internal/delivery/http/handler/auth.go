@@ -1,14 +1,13 @@
 package handler
 
 import (
-	"net/http"
-
 	"be-modami-auth-service/internal/entity"
 	"be-modami-auth-service/internal/usecase"
 	"be-modami-auth-service/pkg/ctxutil"
 	"be-modami-auth-service/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"gitlab.com/lifegoeson-libs/pkg-gokit/apperror"
 )
 
 type Auth struct {
@@ -32,7 +31,7 @@ func NewAuth(authUC *usecase.AuthKeycloakUseCase) *Auth {
 func (h *Auth) Login(c *gin.Context) {
 	var req entity.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "invalid request body", err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 
@@ -59,7 +58,7 @@ func (h *Auth) Login(c *gin.Context) {
 func (h *Auth) Register(c *gin.Context) {
 	var req entity.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "invalid request body", err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 
@@ -85,7 +84,7 @@ func (h *Auth) Register(c *gin.Context) {
 func (h *Auth) Logout(c *gin.Context) {
 	var req entity.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "invalid request body", err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 
@@ -110,7 +109,7 @@ func (h *Auth) Logout(c *gin.Context) {
 func (h *Auth) RefreshToken(c *gin.Context) {
 	var req entity.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "invalid request body", err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 
@@ -136,7 +135,7 @@ func (h *Auth) RefreshToken(c *gin.Context) {
 func (h *Auth) ForgotPassword(c *gin.Context) {
 	var req entity.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "invalid request body", err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 
@@ -160,7 +159,7 @@ func (h *Auth) ForgotPassword(c *gin.Context) {
 func (h *Auth) SocialLogin(c *gin.Context) {
 	provider := c.Query("provider")
 	if provider == "" {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "provider query parameter is required", nil))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "provider query parameter is required"))
 		return
 	}
 
@@ -185,7 +184,7 @@ func (h *Auth) SocialLogin(c *gin.Context) {
 func (h *Auth) SocialCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "code query parameter is required", nil))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "code query parameter is required"))
 		return
 	}
 
@@ -212,13 +211,13 @@ func (h *Auth) SocialCallback(c *gin.Context) {
 func (h *Auth) ChangePassword(c *gin.Context) {
 	claims, ok := ctxutil.GetClaims(c)
 	if !ok {
-		response.Error(c, entity.ErrUnauthorized)
+		response.Error(c, apperror.ErrUnauthorized)
 		return
 	}
 
 	var req entity.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "invalid request body", err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 
@@ -245,13 +244,13 @@ func (h *Auth) ChangePassword(c *gin.Context) {
 func (h *Auth) UpdateProfile(c *gin.Context) {
 	claims, ok := ctxutil.GetClaims(c)
 	if !ok {
-		response.Error(c, entity.ErrUnauthorized)
+		response.Error(c, apperror.ErrUnauthorized)
 		return
 	}
 
 	var req entity.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, entity.NewAppError(http.StatusBadRequest, "invalid request body", err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 

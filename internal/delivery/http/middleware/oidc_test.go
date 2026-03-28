@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/lifegoeson-libs/pkg-gokit/apperror"
 )
 
 func init() {
@@ -42,7 +43,7 @@ func TestOIDC_MissingAuthHeader(t *testing.T) {
 func TestOIDC_InvalidToken(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
-	r.Use(middleware.OIDC(&mockVerifier{err: entity.ErrUnauthorized}))
+	r.Use(middleware.OIDC(&mockVerifier{err: apperror.ErrUnauthorized}))
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	c.Request = httptest.NewRequest(http.MethodGet, "/test", nil)

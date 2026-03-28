@@ -15,6 +15,7 @@ require (
 	github.com/swaggo/swag v1.16.6
 	github.com/twmb/franz-go v1.20.7
 	github.com/twmb/franz-go/pkg/kadm v1.17.2
+	gitlab.com/lifegoeson-libs/pkg-gokit v1.0.0
 	gitlab.com/lifegoeson-libs/pkg-logging v1.0.4
 	go.opentelemetry.io/otel v1.42.0
 )

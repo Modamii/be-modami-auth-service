@@ -179,6 +179,8 @@ github.com/twmb/franz-go/pkg/kmsg v1.12.0/go.mod h1:+DPt4NC8RmI6hqb8G09+3giKObE6
 github.com/ugorji/go/codec v1.3.1 h1:waO7eEiFDwidsBN6agj1vJQ4AG7lh2yqXyOXqhgQuyY=
 github.com/ugorji/go/codec v1.3.1/go.mod h1:pRBVtBSKl77K30Bv8R2P+cLSGaTtex6fsA2Wjqmfxj4=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
+gitlab.com/lifegoeson-libs/pkg-gokit v1.0.0 h1:NViKQKTI8y+Q2GixeyqnRcTqDSLbR/AqkyU+PYPhH3Q=
+gitlab.com/lifegoeson-libs/pkg-gokit v1.0.0/go.mod h1:HBJvzwsGc3ZILgyY8Q5/ceLNFuCeYBVPOCf5aAcw8Nw=
 gitlab.com/lifegoeson-libs/pkg-logging v1.0.4 h1:Wk9vqQJTV8iw7ItTKKWToBfl+ovHLFKREw+fehhkaPc=
 gitlab.com/lifegoeson-libs/pkg-logging v1.0.4/go.mod h1:JNY5I4/68dCNHkrQWzgrwfjaJiSyjjs2mQe8BoHRLZI=
 go.mongodb.org/mongo-driver/v2 v2.5.0 h1:yXUhImUjjAInNcpTcAlPHiT7bIXhshCTL3jVBkF3xaE=

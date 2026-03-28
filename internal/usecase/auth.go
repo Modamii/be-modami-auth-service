@@ -8,6 +8,7 @@ import (
 	"be-modami-auth-service/internal/entity"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"gitlab.com/lifegoeson-libs/pkg-gokit/apperror"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
@@ -42,13 +43,13 @@ func (uc *AuthUseCase) VerifyToken(ctx context.Context, rawToken string) (*entit
 	idToken, err := uc.verifier.Verify(ctx, rawToken)
 	if err != nil {
 		uc.logger.Debug("token verification failed", logging.Any("error", err.Error()))
-		return nil, entity.ErrUnauthorized
+		return nil, apperror.ErrUnauthorized
 	}
 
 	var claims entity.KeycloakClaims
 	if err := idToken.Claims(&claims); err != nil {
 		uc.logger.Error("failed to parse token claims", err)
-		return nil, entity.ErrUnauthorized
+		return nil, apperror.ErrUnauthorized
 	}
 
 	claims.Sub = idToken.Subject
@@ -57,11 +58,11 @@ func (uc *AuthUseCase) VerifyToken(ctx context.Context, rawToken string) (*entit
 
 func ExtractBearerToken(authHeader string) (string, error) {
 	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-		return "", entity.ErrUnauthorized
+		return "", apperror.ErrUnauthorized
 	}
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 	if token == "" {
-		return "", entity.ErrUnauthorized
+		return "", apperror.ErrUnauthorized
 	}
 	return token, nil
 }
