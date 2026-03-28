@@ -24,7 +24,8 @@
       "Bash(go vet:*)",
       "Bash(redis-cli:*)",
       "Bash(docker ps:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(go version:*)"
     ]
   }
 }
