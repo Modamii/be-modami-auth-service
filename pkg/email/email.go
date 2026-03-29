@@ -156,8 +156,8 @@ func (e *EmailService) SendEmailVerificationEmail(ctx context.Context, to, name,
 }
 
 func (e *EmailService) SendOTPEmail(ctx context.Context, to, name, otpCode string) error {
-	data := EmailData{Name: name, OTPCode: otpCode, CompanyName: "TechInsight", SupportEmail: "support@techinsight.com"}
-	subject := "Your TechInsight OTP Code"
+	data := EmailData{Name: name, OTPCode: otpCode, CompanyName: "Modami", SupportEmail: "support@techinsight.com"}
+	subject := "Your Modami OTP Code"
 	htmlBody, err := e.renderTemplate("otp", data)
 	if err != nil {
 		return err
