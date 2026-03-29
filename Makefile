@@ -31,11 +31,11 @@ lint:
 
 ## Run database migrations up
 migrate-up:
-	migrate -path migrations -database "$(DATABASE_URL)" up
+	migrate -path pkg/db/migrations -database "$(DATABASE_URL)" up
 
 ## Run database migrations down (1 step)
 migrate-down:
-	migrate -path migrations -database "$(DATABASE_URL)" down 1
+	migrate -path pkg/db/migrations -database "$(DATABASE_URL)" down 1
 
 ## Generate sqlc code
 sqlc-generate:

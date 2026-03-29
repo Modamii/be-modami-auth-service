@@ -25,7 +25,8 @@
       "Bash(redis-cli:*)",
       "Bash(docker ps:*)",
       "Bash(docker exec:*)",
-      "Bash(go version:*)"
+      "Bash(go version:*)",
+      "Bash(cp:*)"
     ]
   }
 }

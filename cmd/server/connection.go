@@ -43,6 +43,11 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 			return pool.Ping(ctx)
 		})
 		logger.Info("database connected")
+
+		if err := db.RunMigrations(pool); err != nil {
+			return nil, fmt.Errorf("run migrations: %w", err)
+		}
+		logger.Info("database migrations applied")
 	} else {
 		logger.Warn("postgres host not set, skipping database")
 	}
