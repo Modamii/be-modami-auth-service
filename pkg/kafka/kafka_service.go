@@ -126,44 +126,6 @@ func (k *KafkaService) EnsureTopics(ctx context.Context) error {
 		}
 	}
 
-	envPrefix := GetTopicWithEnv(k.appConfig, "")
-	redundantTopics := make([]string, 0)
-	for _, t := range existingTopics.Names() {
-		if strings.HasPrefix(t, envPrefix) {
-			isTarget := false
-			for _, target := range targetTopics {
-				if t == target {
-					isTarget = true
-					break
-				}
-			}
-			if !isTarget {
-				redundantTopics = append(redundantTopics, t)
-			}
-		}
-	}
-
-	if len(redundantTopics) > 0 {
-		logger.Info(ctx, "Deleting redundant Kafka topics...",
-			logging.Int("count", len(redundantTopics)),
-			logging.String("topics", strings.Join(redundantTopics, ",")),
-		)
-		delResp, err := adm.DeleteTopics(ctx, redundantTopics...)
-		if err != nil {
-			logger.Error(ctx, "Failed to delete redundant topics", err)
-		} else {
-			for _, res := range delResp {
-				if res.Err != nil {
-					logger.Error(ctx, "Failed to delete redundant topic", res.Err,
-						logging.String("topic", res.Topic),
-					)
-				} else {
-					logger.Info(ctx, "Successfully deleted redundant topic", logging.String("topic", res.Topic))
-				}
-			}
-		}
-	}
-
 	if len(missingTopics) == 0 {
 		logger.Info(ctx, "All required Kafka topics already exist")
 		return nil
