@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 )
 
+//go:embed migrations/*.sql
 var migrationFiles embed.FS
 
 // RunMigrations applies all pending up migrations embedded in the binary.
