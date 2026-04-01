@@ -41,7 +41,7 @@ func (s *Server) Run() error {
 		}
 	}()
 
-	quit := make(chan os.Signal, 1)
+	quit := make(chan os.Signal, 2)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	select {
@@ -50,6 +50,12 @@ func (s *Server) Run() error {
 	case sig := <-quit:
 		s.logger.Info("shutting down", logging.String("signal", sig.String()))
 	}
+
+	go func() {
+		<-quit
+		s.logger.Warn("forced exit")
+		os.Exit(1)
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdown)
 	defer cancel()

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"be-modami-auth-service/config"
 
@@ -50,5 +51,8 @@ func main() {
 	}
 	defer app.Close()
 
-	app.Run()
+	if err := app.Run(); err != nil {
+		logger.Error(context.Background(), "server error", err, logging.String("error", err.Error()))
+		os.Exit(1)
+	}
 }

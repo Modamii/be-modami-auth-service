@@ -51,9 +51,9 @@ kafka:
 
 keycloak:
   base_url: "http://localhost:8180"
-  realm: "modami-api"
+  realm: "modami"
   client_id: "modami-api"
-  client_secret: ""
+  client_secret: "rcfMVgeZXyssHIwA9Xk2GMgpOy8iAe7v"
   admin_user: "admin"
   admin_pass: "admin"
   redirect_url: "http://localhost:8085/v1/auth-services/auth/social/callback"

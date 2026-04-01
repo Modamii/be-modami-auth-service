@@ -35,7 +35,7 @@ func NewAuth(authUC *usecase.AuthKeycloakUseCase) *Auth {
 func (h *Auth) Login(c *gin.Context) {
 	var req entity.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *Auth) Login(c *gin.Context) {
 func (h *Auth) Register(c *gin.Context) {
 	var req entity.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h *Auth) Register(c *gin.Context) {
 func (h *Auth) Logout(c *gin.Context) {
 	var req entity.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
@@ -113,7 +113,7 @@ func (h *Auth) Logout(c *gin.Context) {
 func (h *Auth) RefreshToken(c *gin.Context) {
 	var req entity.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
@@ -139,7 +139,7 @@ func (h *Auth) RefreshToken(c *gin.Context) {
 func (h *Auth) ForgotPassword(c *gin.Context) {
 	var req entity.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
@@ -148,7 +148,7 @@ func (h *Auth) ForgotPassword(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, gin.H{"message": "if the email exists, a reset link has been sent"})
+	response.OK(c, gin.H{"message": "nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi"})
 }
 
 // SocialLogin godoc
@@ -163,7 +163,7 @@ func (h *Auth) ForgotPassword(c *gin.Context) {
 func (h *Auth) SocialLogin(c *gin.Context) {
 	provider := c.Query("provider")
 	if provider == "" {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "provider query parameter is required"))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "thiếu tham số provider"))
 		return
 	}
 
@@ -236,7 +236,7 @@ func (h *Auth) ChangePassword(c *gin.Context) {
 
 	var req entity.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
@@ -258,7 +258,7 @@ func (h *Auth) UpdateProfile(c *gin.Context) {
 
 	var req entity.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		response.Error(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 

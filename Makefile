@@ -49,6 +49,10 @@ swagger:
 docker-up:
 	docker compose up -d --build
 
+## Start services in foreground; Ctrl+C stops and kills all containers
+docker-watch:
+	@trap 'docker compose down' INT; docker compose up
+
 ## Stop all services
 docker-down:
 	docker compose down

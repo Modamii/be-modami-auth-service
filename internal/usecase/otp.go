@@ -65,32 +65,32 @@ func (uc *otpUseCase) SendOTP(ctx context.Context, req dto.SendOTPRequest, userI
 	case dto.PurposeRegister:
 		// Email must NOT already be registered
 		if _, err := uc.authKC.FindUserByEmail(ctx, emailAddr); err == nil {
-			return fmt.Errorf("email already registered")
+			return fmt.Errorf("email đã được đăng ký")
 		}
 	case dto.PurposeForgotPassword:
 		// User must exist
 		if _, err := uc.authKC.FindUserByEmail(ctx, emailAddr); err != nil {
-			return fmt.Errorf("email not found")
+			return fmt.Errorf("không tìm thấy email")
 		}
 	case dto.PurposeChangeEmail:
 		// New email must NOT already be taken
 		if _, err := uc.authKC.FindUserByEmail(ctx, emailAddr); err == nil {
-			return fmt.Errorf("email already in use")
+			return fmt.Errorf("email đã được sử dụng")
 		}
 	}
 
 	otp, err := uc.otpService.GenerateOTP()
 	if err != nil {
 		logger.FromContext(ctx).Error("Failed to generate OTP", err)
-		return fmt.Errorf("failed to generate OTP")
+		return fmt.Errorf("không thể tạo mã OTP")
 	}
 	if err := uc.otpService.StoreOTP(ctx, purpose, emailAddr, otp); err != nil {
 		logger.FromContext(ctx).Error("Failed to store OTP", err)
-		return fmt.Errorf("failed to store OTP")
+		return fmt.Errorf("không thể lưu mã OTP")
 	}
 	if err := uc.emailService.SendOTPEmail(ctx, emailAddr, emailAddr, otp); err != nil {
 		logger.FromContext(ctx).Error("Failed to send OTP email", err, logging.String("email", emailAddr))
-		return fmt.Errorf("failed to send otp email")
+		return fmt.Errorf("không thể gửi email OTP")
 	}
 
 	logger.FromContext(ctx).Info("OTP sent",
@@ -123,7 +123,7 @@ func (uc *otpUseCase) VerifyOTP(ctx context.Context, req dto.VerifyOTPRequest, u
 	case dto.PurposeChangeEmail:
 		return uc.afterVerifyChangeEmail(ctx, userID, emailAddr)
 	default:
-		return nil, fmt.Errorf("unsupported purpose")
+		return nil, fmt.Errorf("mục đích không được hỗ trợ")
 	}
 }
 
@@ -134,7 +134,7 @@ func (uc *otpUseCase) VerifyOTP(ctx context.Context, req dto.VerifyOTPRequest, u
 func (uc *otpUseCase) ResetPassword(ctx context.Context, resetToken, newPassword string) error {
 	data, err := uc.resetTokenService.Validate(ctx, resetToken)
 	if err != nil {
-		return fmt.Errorf("reset token invalid or expired")
+		return fmt.Errorf("token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn")
 	}
 	if err := uc.authKC.SetPasswordByUserID(ctx, data.UserID, newPassword); err != nil {
 		return err
@@ -150,20 +150,20 @@ func (uc *otpUseCase) ResetPassword(ctx context.Context, resetToken, newPassword
 func (uc *otpUseCase) afterVerifyRegister(ctx context.Context, emailAddr string, req dto.VerifyOTPRequest) (*entity.LoginResponse, error) {
 	// Validate register-specific fields
 	if strings.TrimSpace(req.Username) == "" {
-		return nil, fmt.Errorf("username is required")
+		return nil, fmt.Errorf("tên đăng nhập là bắt buộc")
 	}
 	if len(req.Password) < 8 {
-		return nil, fmt.Errorf("password must be at least 8 characters")
+		return nil, fmt.Errorf("mật khẩu phải có ít nhất 8 ký tự")
 	}
 
 	// Idempotency lock
 	lockKey := registerLockPrefix + emailAddr
 	acquired, err := uc.cache.SetNX(ctx, lockKey, "1", registerLockTTL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to acquire lock")
+		return nil, fmt.Errorf("không thể khởi tạo phiên đăng ký")
 	}
 	if !acquired {
-		return nil, fmt.Errorf("registration already in progress")
+		return nil, fmt.Errorf("đang xử lý đăng ký, vui lòng thử lại sau")
 	}
 
 	resp, err := uc.authKC.RegisterWithVerifiedEmail(ctx, entity.RegisterRequest{
@@ -195,7 +195,7 @@ func (uc *otpUseCase) afterVerifyForgot(ctx context.Context, emailAddr string) (
 	token, err := uc.resetTokenService.Generate(ctx, emailAddr, userID)
 	if err != nil {
 		logger.FromContext(ctx).Error("Failed to generate reset token", err)
-		return nil, fmt.Errorf("failed to generate reset token")
+		return nil, fmt.Errorf("không thể tạo token đặt lại mật khẩu")
 	}
 
 	logger.FromContext(ctx).Info("Reset token issued", logging.String("email", emailAddr))
@@ -208,7 +208,7 @@ func (uc *otpUseCase) afterVerifyForgot(ctx context.Context, emailAddr string) (
 
 func (uc *otpUseCase) afterVerifyChangeEmail(ctx context.Context, userID, newEmail string) (any, error) {
 	if userID == "" {
-		return nil, fmt.Errorf("unauthorized")
+		return nil, fmt.Errorf("không được phép")
 	}
 	if err := uc.authKC.UpdateUserEmail(ctx, userID, newEmail); err != nil {
 		return nil, err
@@ -228,18 +228,18 @@ func (uc *otpUseCase) verifyAndDeleteOTP(ctx context.Context, purpose auth.OTPPu
 	valid, err := uc.otpService.ValidateOTP(ctx, purpose, identifier, code)
 	if err != nil {
 		if strings.Contains(err.Error(), "max retry exceeded") {
-			return fmt.Errorf("max retry exceeded")
+			return fmt.Errorf("đã vượt quá số lần thử tối đa")
 		}
 		if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "expired") {
-			return fmt.Errorf("otp expired")
+			return fmt.Errorf("mã OTP đã hết hạn")
 		}
 		if strings.Contains(err.Error(), "invalid") {
-			return fmt.Errorf("invalid otp")
+			return fmt.Errorf("mã OTP không hợp lệ")
 		}
 		return err
 	}
 	if !valid {
-		return fmt.Errorf("invalid otp")
+		return fmt.Errorf("mã OTP không hợp lệ")
 	}
 	_ = uc.otpService.DeleteOTP(ctx, purpose, identifier)
 	return nil

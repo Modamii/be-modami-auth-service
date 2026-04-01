@@ -28,7 +28,7 @@ func Error(c *gin.Context, err error) {
 		c.Abort()
 		return
 	}
-	pkgresponse.InternalError(c.Writer, "internal server error")
+	pkgresponse.InternalError(c.Writer, "lỗi máy chủ nội bộ")
 	c.Abort()
 }
 

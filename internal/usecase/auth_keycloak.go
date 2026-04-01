@@ -51,7 +51,7 @@ func (uc *AuthKeycloakUseCase) Login(ctx context.Context, req entity.LoginReques
 	token, err := uc.client.Login(ctx, uc.cfg.ClientID, uc.cfg.ClientSecret, uc.cfg.Realm, req.Username, req.Password)
 	if err != nil {
 		uc.logger.Debug("login failed", logging.String("username", req.Username), logging.Any("error", err.Error()))
-		return nil, apperror.New(apperror.CodeUnauthorized, "invalid credentials").WithError(err)
+		return nil, apperror.New(apperror.CodeUnauthorized, "thông tin đăng nhập không hợp lệ").WithError(err)
 	}
 
 	return &entity.LoginResponse{
@@ -65,7 +65,7 @@ func (uc *AuthKeycloakUseCase) Login(ctx context.Context, req entity.LoginReques
 func (uc *AuthKeycloakUseCase) Register(ctx context.Context, req entity.RegisterRequest) (*entity.RegisterResponse, error) {
 	adminToken, err := uc.admin.getAdminToken(ctx)
 	if err != nil {
-		return nil, apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+		return nil, apperror.New(apperror.CodeBadGateway, "dịch vụ xác thực không khả dụng").WithError(err)
 	}
 
 	enabled := true
@@ -80,13 +80,13 @@ func (uc *AuthKeycloakUseCase) Register(ctx context.Context, req entity.Register
 	userID, err := uc.client.CreateUser(ctx, adminToken, uc.cfg.Realm, user)
 	if err != nil {
 		uc.logger.Error("failed to create user", err)
-		return nil, apperror.New(apperror.CodeConflict, "user already exists or invalid data").WithError(err)
+		return nil, apperror.New(apperror.CodeConflict, "người dùng đã tồn tại hoặc dữ liệu không hợp lệ").WithError(err)
 	}
 
 	// Set password
 	if err := uc.client.SetPassword(ctx, adminToken, userID, uc.cfg.Realm, req.Password, false); err != nil {
-		uc.logger.Error("failed to set password", err, logging.String("user_id", userID))
-		return nil, apperror.New(apperror.CodeInternal, "failed to set password").WithError(err)
+		uc.logger.Error("không thể đặt mật khẩu", err, logging.String("user_id", userID))
+		return nil, apperror.New(apperror.CodeInternal, "không thể đặt mật khẩu").WithError(err)
 	}
 
 	if uc.producer != nil {
@@ -105,7 +105,7 @@ func (uc *AuthKeycloakUseCase) Logout(ctx context.Context, req entity.LogoutRequ
 	err := uc.client.Logout(ctx, uc.cfg.ClientID, uc.cfg.ClientSecret, uc.cfg.Realm, req.RefreshToken)
 	if err != nil {
 		uc.logger.Debug("logout failed", logging.Any("error", err.Error()))
-		return apperror.New(apperror.CodeBadRequest, "logout failed").WithError(err)
+		return apperror.New(apperror.CodeBadRequest, "đăng xuất thất bại").WithError(err)
 	}
 	return nil
 }
@@ -114,7 +114,7 @@ func (uc *AuthKeycloakUseCase) RefreshToken(ctx context.Context, req entity.Refr
 	token, err := uc.client.RefreshToken(ctx, req.RefreshToken, uc.cfg.ClientID, uc.cfg.ClientSecret, uc.cfg.Realm)
 	if err != nil {
 		uc.logger.Debug("refresh token failed", logging.Any("error", err.Error()))
-		return nil, apperror.New(apperror.CodeUnauthorized, "invalid refresh token").WithError(err)
+		return nil, apperror.New(apperror.CodeUnauthorized, "refresh token không hợp lệ").WithError(err)
 	}
 
 	return &entity.LoginResponse{
@@ -128,7 +128,7 @@ func (uc *AuthKeycloakUseCase) RefreshToken(ctx context.Context, req entity.Refr
 func (uc *AuthKeycloakUseCase) ForgotPassword(ctx context.Context, req entity.ForgotPasswordRequest) error {
 	adminToken, err := uc.admin.getAdminToken(ctx)
 	if err != nil {
-		return apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+		return apperror.New(apperror.CodeBadGateway, "dịch vụ xác thực không khả dụng").WithError(err)
 	}
 
 	// Find user by email
@@ -138,7 +138,7 @@ func (uc *AuthKeycloakUseCase) ForgotPassword(ctx context.Context, req entity.Fo
 		Exact: &exact,
 	})
 	if err != nil {
-		return apperror.New(apperror.CodeBadGateway, "failed to find user").WithError(err)
+		return apperror.New(apperror.CodeBadGateway, "không thể tìm kiếm người dùng").WithError(err)
 	}
 	if len(users) == 0 {
 		// Don't reveal whether email exists
@@ -168,7 +168,7 @@ var allowedProviders = map[string]bool{
 
 func (uc *AuthKeycloakUseCase) SocialLoginURL(ctx context.Context, provider string) (*entity.SocialLoginResponse, error) {
 	if !allowedProviders[provider] {
-		return nil, apperror.New(apperror.CodeBadRequest, "unsupported provider: "+provider)
+		return nil, apperror.New(apperror.CodeBadRequest, "nhà cung cấp không được hỗ trợ: "+provider)
 	}
 
 	// Generate CSRF state and store in Redis
@@ -179,7 +179,7 @@ func (uc *AuthKeycloakUseCase) SocialLoginURL(ctx context.Context, provider stri
 	if uc.cache != nil {
 		if err := uc.cache.SetJSON(ctx, "social:state:"+state, stateData, 10*time.Minute); err != nil {
 			uc.logger.Error("failed to store social login state", err)
-			return nil, apperror.New(apperror.CodeInternal, "failed to initiate social login").WithError(err)
+			return nil, apperror.New(apperror.CodeInternal, "không thể khởi tạo đăng nhập mạng xã hội").WithError(err)
 		}
 	}
 
@@ -199,13 +199,13 @@ func (uc *AuthKeycloakUseCase) SocialLoginURL(ctx context.Context, provider stri
 func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state string) (*entity.LoginResponse, error) {
 	// Validate CSRF state
 	if state == "" {
-		return nil, apperror.New(apperror.CodeBadRequest, "missing state parameter")
+		return nil, apperror.New(apperror.CodeBadRequest, "thiếu tham số state")
 	}
 	var stateData map[string]string
 	if uc.cache != nil {
 		if err := uc.cache.GetJSON(ctx, "social:state:"+state, &stateData); err != nil {
 			uc.logger.Debug("invalid or expired social login state", logging.String("state", state))
-			return nil, apperror.New(apperror.CodeBadRequest, "invalid or expired state parameter")
+			return nil, apperror.New(apperror.CodeBadRequest, "tham số state không hợp lệ hoặc đã hết hạn")
 		}
 		// Delete state immediately (one-time use)
 		_ = uc.cache.Delete(ctx, "social:state:"+state)
@@ -224,18 +224,18 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state str
 	resp, err := http.Post(tokenURL, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
 	if err != nil {
 		uc.logger.Error("failed to exchange code", err)
-		return nil, apperror.New(apperror.CodeBadGateway, "failed to contact keycloak").WithError(err)
+		return nil, apperror.New(apperror.CodeBadGateway, "không thể kết nối đến dịch vụ xác thực").WithError(err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, apperror.New(apperror.CodeBadGateway, "failed to read keycloak response").WithError(err)
+		return nil, apperror.New(apperror.CodeBadGateway, "không thể đọc phản hồi từ dịch vụ xác thực").WithError(err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		uc.logger.Debug("code exchange failed", logging.Int("status", resp.StatusCode), logging.String("body", string(body)))
-		return nil, apperror.New(apperror.CodeUnauthorized, "invalid or expired authorization code")
+		return nil, apperror.New(apperror.CodeUnauthorized, "mã xác thực không hợp lệ hoặc đã hết hạn")
 	}
 
 	var tokenResp struct {
@@ -245,7 +245,7 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state str
 		TokenType    string `json:"token_type"`
 	}
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return nil, apperror.New(apperror.CodeBadGateway, "failed to parse keycloak response").WithError(err)
+		return nil, apperror.New(apperror.CodeBadGateway, "không thể phân tích phản hồi từ dịch vụ xác thực").WithError(err)
 	}
 
 	// Emit Kafka social login event
@@ -276,7 +276,7 @@ func (uc *AuthKeycloakUseCase) GetFrontendCallbackURL() string {
 func (uc *AuthKeycloakUseCase) FindUserByEmail(ctx context.Context, email string) (string, error) {
 	adminToken, err := uc.admin.getAdminToken(ctx)
 	if err != nil {
-		return "", apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+		return "", apperror.New(apperror.CodeBadGateway, "dịch vụ xác thực không khả dụng").WithError(err)
 	}
 	exact := true
 	users, err := uc.client.GetUsers(ctx, adminToken, uc.cfg.Realm, gocloak.GetUsersParams{
@@ -284,10 +284,10 @@ func (uc *AuthKeycloakUseCase) FindUserByEmail(ctx context.Context, email string
 		Exact: &exact,
 	})
 	if err != nil {
-		return "", apperror.New(apperror.CodeBadGateway, "failed to find user").WithError(err)
+		return "", apperror.New(apperror.CodeBadGateway, "không thể tìm kiếm người dùng").WithError(err)
 	}
 	if len(users) == 0 {
-		return "", apperror.New(apperror.CodeNotFound, "user not found")
+		return "", apperror.New(apperror.CodeNotFound, "không tìm thấy người dùng")
 	}
 	return derefStr(users[0].ID), nil
 }
@@ -297,7 +297,7 @@ func (uc *AuthKeycloakUseCase) FindUserByEmail(ctx context.Context, email string
 func (uc *AuthKeycloakUseCase) RegisterWithVerifiedEmail(ctx context.Context, req entity.RegisterRequest) (*entity.LoginResponse, error) {
 	adminToken, err := uc.admin.getAdminToken(ctx)
 	if err != nil {
-		return nil, apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+		return nil, apperror.New(apperror.CodeBadGateway, "dịch vụ xác thực không khả dụng").WithError(err)
 	}
 
 	enabled := true
@@ -314,12 +314,12 @@ func (uc *AuthKeycloakUseCase) RegisterWithVerifiedEmail(ctx context.Context, re
 	userID, err := uc.client.CreateUser(ctx, adminToken, uc.cfg.Realm, user)
 	if err != nil {
 		uc.logger.Error("failed to create user", err)
-		return nil, apperror.New(apperror.CodeConflict, "user already exists or invalid data").WithError(err)
+		return nil, apperror.New(apperror.CodeConflict, "người dùng đã tồn tại hoặc dữ liệu không hợp lệ").WithError(err)
 	}
 
 	if err := uc.client.SetPassword(ctx, adminToken, userID, uc.cfg.Realm, req.Password, false); err != nil {
-		uc.logger.Error("failed to set password", err, logging.String("user_id", userID))
-		return nil, apperror.New(apperror.CodeInternal, "failed to set password").WithError(err)
+		uc.logger.Error("không thể đặt mật khẩu", err, logging.String("user_id", userID))
+		return nil, apperror.New(apperror.CodeInternal, "không thể đặt mật khẩu").WithError(err)
 	}
 
 	if uc.producer != nil {
@@ -335,7 +335,7 @@ func (uc *AuthKeycloakUseCase) RegisterWithVerifiedEmail(ctx context.Context, re
 	token, err := uc.client.Login(ctx, uc.cfg.ClientID, uc.cfg.ClientSecret, uc.cfg.Realm, req.Username, req.Password)
 	if err != nil {
 		uc.logger.Error("failed to login after registration", err)
-		return nil, apperror.New(apperror.CodeInternal, "registration succeeded but login failed").WithError(err)
+		return nil, apperror.New(apperror.CodeInternal, "đăng ký thành công nhưng đăng nhập thất bại").WithError(err)
 	}
 
 	return &entity.LoginResponse{
@@ -350,11 +350,11 @@ func (uc *AuthKeycloakUseCase) RegisterWithVerifiedEmail(ctx context.Context, re
 func (uc *AuthKeycloakUseCase) SetPasswordByUserID(ctx context.Context, userID, newPassword string) error {
 	adminToken, err := uc.admin.getAdminToken(ctx)
 	if err != nil {
-		return apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+		return apperror.New(apperror.CodeBadGateway, "dịch vụ xác thực không khả dụng").WithError(err)
 	}
 	if err := uc.client.SetPassword(ctx, adminToken, userID, uc.cfg.Realm, newPassword, false); err != nil {
-		uc.logger.Error("failed to reset password", err, logging.String("user_id", userID))
-		return apperror.New(apperror.CodeInternal, "failed to reset password").WithError(err)
+		uc.logger.Error("không thể đặt lại mật khẩu", err, logging.String("user_id", userID))
+		return apperror.New(apperror.CodeInternal, "không thể đặt lại mật khẩu").WithError(err)
 	}
 	return nil
 }
@@ -363,11 +363,11 @@ func (uc *AuthKeycloakUseCase) SetPasswordByUserID(ctx context.Context, userID, 
 func (uc *AuthKeycloakUseCase) UpdateUserEmail(ctx context.Context, userID, newEmail string) error {
 	adminToken, err := uc.admin.getAdminToken(ctx)
 	if err != nil {
-		return apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+		return apperror.New(apperror.CodeBadGateway, "dịch vụ xác thực không khả dụng").WithError(err)
 	}
 	user, err := uc.client.GetUserByID(ctx, adminToken, uc.cfg.Realm, userID)
 	if err != nil {
-		return apperror.New(apperror.CodeNotFound, "user not found").WithError(err)
+		return apperror.New(apperror.CodeNotFound, "không tìm thấy người dùng").WithError(err)
 	}
 	emailVerified := true
 	user.Email = &newEmail
@@ -375,7 +375,7 @@ func (uc *AuthKeycloakUseCase) UpdateUserEmail(ctx context.Context, userID, newE
 	user.EmailVerified = &emailVerified
 	if err := uc.client.UpdateUser(ctx, adminToken, uc.cfg.Realm, *user); err != nil {
 		uc.logger.Error("failed to update user email", err, logging.String("user_id", userID))
-		return apperror.New(apperror.CodeInternal, "failed to update email").WithError(err)
+		return apperror.New(apperror.CodeInternal, "không thể cập nhật email").WithError(err)
 	}
 
 	if uc.producer != nil {
@@ -397,17 +397,17 @@ func (uc *AuthKeycloakUseCase) UpdateUserEmail(ctx context.Context, userID, newE
 func (uc *AuthKeycloakUseCase) ChangePassword(ctx context.Context, userID, oldPassword, newPassword string) error {
 	_, err := uc.client.Login(ctx, uc.cfg.ClientID, uc.cfg.ClientSecret, uc.cfg.Realm, userID, oldPassword)
 	if err != nil {
-		return apperror.New(apperror.CodeUnauthorized, "old password is incorrect").WithError(err)
+		return apperror.New(apperror.CodeUnauthorized, "mật khẩu cũ không đúng").WithError(err)
 	}
 
 	adminToken, err := uc.admin.getAdminToken(ctx)
 	if err != nil {
-		return apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+		return apperror.New(apperror.CodeBadGateway, "dịch vụ xác thực không khả dụng").WithError(err)
 	}
 
 	if err := uc.client.SetPassword(ctx, adminToken, userID, uc.cfg.Realm, newPassword, false); err != nil {
 		uc.logger.Error("failed to set new password", err, logging.String("user_id", userID))
-		return apperror.New(apperror.CodeInternal, "failed to change password").WithError(err)
+		return apperror.New(apperror.CodeInternal, "không thể đổi mật khẩu").WithError(err)
 	}
 
 	return nil
@@ -416,12 +416,12 @@ func (uc *AuthKeycloakUseCase) ChangePassword(ctx context.Context, userID, oldPa
 func (uc *AuthKeycloakUseCase) UpdateProfile(ctx context.Context, userID string, req entity.UpdateProfileRequest) error {
 	adminToken, err := uc.admin.getAdminToken(ctx)
 	if err != nil {
-		return apperror.New(apperror.CodeBadGateway, "keycloak unavailable").WithError(err)
+		return apperror.New(apperror.CodeBadGateway, "dịch vụ xác thực không khả dụng").WithError(err)
 	}
 
 	user, err := uc.client.GetUserByID(ctx, adminToken, uc.cfg.Realm, userID)
 	if err != nil {
-		return apperror.New(apperror.CodeNotFound, "user not found").WithError(err)
+		return apperror.New(apperror.CodeNotFound, "không tìm thấy người dùng").WithError(err)
 	}
 
 	if req.FirstName != "" {
@@ -436,7 +436,7 @@ func (uc *AuthKeycloakUseCase) UpdateProfile(ctx context.Context, userID string,
 
 	if err := uc.client.UpdateUser(ctx, adminToken, uc.cfg.Realm, *user); err != nil {
 		uc.logger.Error("failed to update user profile", err, logging.String("user_id", userID))
-		return apperror.New(apperror.CodeInternal, "failed to update profile").WithError(err)
+		return apperror.New(apperror.CodeInternal, "không thể cập nhật thông tin cá nhân").WithError(err)
 	}
 
 	if uc.producer != nil {

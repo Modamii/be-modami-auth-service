@@ -37,11 +37,11 @@ func NewOTPHandler(otpUsecase usecase.OTPUseCase, validator *validator.Validate)
 func (h *OTPHandler) SendOTP(c *gin.Context) {
 	var req dto.SendOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 	if err := h.validator.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed", "details": pkgerrors.FormatValidationErrors(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": pkgerrors.FormatValidationErrors(err)})
 		return
 	}
 
@@ -50,7 +50,7 @@ func (h *OTPHandler) SendOTP(c *gin.Context) {
 	if req.Purpose == dto.PurposeChangeEmail {
 		claims, ok := ctxutil.GetClaims(c)
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "không được phép"})
 			return
 		}
 		userID = claims.Sub
@@ -60,7 +60,7 @@ func (h *OTPHandler) SendOTP(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "OTP sent successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Mã OTP đã được gửi thành công"})
 }
 
 // VerifyOTP godoc
@@ -76,11 +76,11 @@ func (h *OTPHandler) SendOTP(c *gin.Context) {
 func (h *OTPHandler) VerifyOTP(c *gin.Context) {
 	var req dto.VerifyOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 	if err := h.validator.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed", "details": pkgerrors.FormatValidationErrors(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": pkgerrors.FormatValidationErrors(err)})
 		return
 	}
 
@@ -89,7 +89,7 @@ func (h *OTPHandler) VerifyOTP(c *gin.Context) {
 	if req.Purpose == dto.PurposeChangeEmail {
 		claims, ok := ctxutil.GetClaims(c)
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "không được phép"})
 			return
 		}
 		userID = claims.Sub
@@ -108,7 +108,7 @@ func (h *OTPHandler) VerifyOTP(c *gin.Context) {
 	case dto.PurposeForgotPassword:
 		c.JSON(http.StatusOK, result)
 	case dto.PurposeChangeEmail:
-		c.JSON(http.StatusOK, gin.H{"message": "Email updated successfully"})
+		c.JSON(http.StatusOK, gin.H{"message": "Email đã được cập nhật thành công"})
 	}
 }
 
@@ -125,16 +125,16 @@ func (h *OTPHandler) VerifyOTP(c *gin.Context) {
 func (h *OTPHandler) ResetPassword(c *gin.Context) {
 	var req dto.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng yêu cầu không hợp lệ"})
 		return
 	}
 	if err := h.validator.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed", "details": pkgerrors.FormatValidationErrors(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": pkgerrors.FormatValidationErrors(err)})
 		return
 	}
 	if err := h.otpUsecase.ResetPassword(c.Request.Context(), req.ResetToken, req.NewPassword); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Đặt lại mật khẩu thành công"})
 }

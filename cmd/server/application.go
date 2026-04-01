@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"be-modami-auth-service/config"
@@ -66,13 +65,23 @@ func newApplication(cfg *config.Config) (*application, error) {
 	}, nil
 }
 
-func (a *application) Run() {
-	if err := a.server.Run(); err != nil {
-		a.logger.Error("server error", err)
-		os.Exit(1)
-	}
+func (a *application) Run() error {
+	return a.server.Run()
 }
 
 func (a *application) Close() {
-	a.conn.Close()
+	a.logger.Info("shutting down connections...")
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		a.conn.Close()
+	}()
+
+	select {
+	case <-done:
+		a.logger.Info("all connections closed")
+	case <-time.After(5 * time.Second):
+		a.logger.Warn("connection shutdown timed out, forcing exit")
+	}
 }
