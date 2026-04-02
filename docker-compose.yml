@@ -3,17 +3,29 @@ services:
     image: mongo:8
     container_name: mongo
     restart: unless-stopped
-    command: ["mongod", "--bind_ip_all", "--replSet", "rs0"]
+    entrypoint: >
+      bash -c "
+        mongod --replSet rs0 --bind_ip_all &
+        until mongosh --quiet --eval 'db.adminCommand(\"ping\")' > /dev/null 2>&1; do sleep 1; done
+        mongosh --quiet --eval '
+          try { rs.status(); print(\"Replica set already initialized\"); }
+          catch(e) {
+            rs.initiate({ _id: \"rs0\", members: [{ _id: 0, host: \"mongo:27017\" }] });
+            print(\"Replica set initialized\");
+          }
+        '
+        wait
+      "
     volumes:
       - mongo_data:/data/db
-      - ./scripts/init-replica.js:/docker-entrypoint-initdb.d/init-replica.js
     ports:
       - "27017:27017"
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "rs.status().ok === 1 || quit(1)"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
       
   minio:
     image: minio/minio:RELEASE.2023-12-02T10-51-33Z-cpuv1

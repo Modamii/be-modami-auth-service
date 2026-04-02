@@ -19,7 +19,7 @@ try {
         members: [
             {
                 _id: 0,
-                host: "mongo1:27017"
+                host: "mongo:27017"
             }
         ]
     });
