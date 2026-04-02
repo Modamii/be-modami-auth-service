@@ -15,7 +15,7 @@ import (
 // @title           Modami Auth Service API
 // @version         1.0
 // @description     Authentication service for the Modami marketplace platform.
-// @host            localhost:8085
+// @host            modami-auth.techinsightsworld.com
 // @BasePath        /v1/auth-services
 
 // @securityDefinitions.apikey BearerAuth

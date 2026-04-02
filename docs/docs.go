@@ -1196,7 +1196,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8085",
+	Host:             "modami-auth.techinsightsworld.com",
 	BasePath:         "/v1/auth-services",
 	Schemes:          []string{},
 	Title:            "Modami Auth Service API",
