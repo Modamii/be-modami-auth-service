@@ -11,12 +11,19 @@ import (
 type Config struct {
 	App      AppConfig      `mapstructure:"app"`
 	Server   ServerConfig   `mapstructure:"server"`
+	CORS     CORSConfig     `mapstructure:"cors"`
 	Postgres PostgresConfig `mapstructure:"postgres"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 	Keycloak KeycloakConfig `mapstructure:"keycloak"`
 	Log      LogConfig      `mapstructure:"log"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	Email    EmailConfig    `mapstructure:"email"`
+}
+
+// CORSConfig controls gin-contrib/cors for browser clients.
+type CORSConfig struct {
+	AllowedOrigins   []string `mapstructure:"allowed_origins"`
+	AllowCredentials bool     `mapstructure:"allow_credentials"`
 }
 
 type AppConfig struct {
@@ -100,8 +107,22 @@ func (k KafkaConfig) GetBrokers() []string {
 }
 
 type ServerConfig struct {
+	Host            string `mapstructure:"host"`
 	Port            int    `mapstructure:"port"`
 	ShutdownTimeout string `mapstructure:"shutdown_timeout"`
+}
+
+// ListenAddr returns host:port for http.Server (defaults host 0.0.0.0).
+func (s ServerConfig) ListenAddr() string {
+	host := strings.TrimSpace(s.Host)
+	if host == "" {
+		host = "0.0.0.0"
+	}
+	port := s.Port
+	if port <= 0 {
+		port = 8085
+	}
+	return fmt.Sprintf("%s:%d", host, port)
 }
 
 func (s ServerConfig) GetShutdownTimeout() time.Duration {
@@ -161,8 +182,16 @@ func Load() (*Config, error) {
 	v.AddConfigPath("./config")
 
 	// Defaults
+	v.SetDefault("server.host", "0.0.0.0")
 	v.SetDefault("server.port", 8085)
 	v.SetDefault("server.shutdown_timeout", "15s")
+	v.SetDefault("cors.allow_credentials", true)
+	v.SetDefault("cors.allowed_origins", []string{
+		"http://localhost:5173",
+		"http://localhost:3000",
+		"http://localhost:8080",
+		"http://localhost:8081",
+	})
 	v.SetDefault("postgres.max_idle_conns", 5)
 	v.SetDefault("postgres.max_active_conns", 25)
 	v.SetDefault("postgres.sslmode", "disable")

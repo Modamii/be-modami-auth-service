@@ -1,10 +1,12 @@
 package http
 
 import (
+	"be-modami-auth-service/config"
 	"be-modami-auth-service/internal/delivery/http/handler"
 	"be-modami-auth-service/internal/delivery/http/middleware"
 	"be-modami-auth-service/internal/usecase"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -21,6 +23,7 @@ type RouterDeps struct {
 	OTP      *handler.OTPHandler
 	Verifier usecase.TokenVerifier
 	Logger   logging.Logger
+	CORS     config.CORSConfig
 }
 
 func NewRouter(deps RouterDeps) *gin.Engine {
@@ -30,6 +33,23 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	r.Use(middleware.RequestID())
 	r.Use(middleware.ZapLogger(deps.Logger))
 	r.Use(gin.Recovery())
+
+	origins := deps.CORS.AllowedOrigins
+	if len(origins) == 0 {
+		origins = []string{
+			"http://localhost:5173",
+			"http://localhost:3000",
+			"http://localhost:8080",
+			"http://localhost:8081",
+		}
+	}
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     origins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
+		AllowCredentials: deps.CORS.AllowCredentials,
+		MaxAge:           300,
+	}))
 
 	// Swagger UI
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

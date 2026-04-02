@@ -18,10 +18,10 @@ type Server struct {
 	shutdown   time.Duration
 }
 
-func NewServer(port int, handler http.Handler, shutdownTimeout time.Duration, logger logging.Logger) *Server {
+func NewServer(addr string, handler http.Handler, shutdownTimeout time.Duration, logger logging.Logger) *Server {
 	return &Server{
 		httpServer: &http.Server{
-			Addr:         fmt.Sprintf(":%d", port),
+			Addr:         addr,
 			Handler:      handler,
 			ReadTimeout:  15 * time.Second,
 			WriteTimeout: 15 * time.Second,

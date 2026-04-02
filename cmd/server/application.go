@@ -53,10 +53,11 @@ func newApplication(cfg *config.Config) (*application, error) {
 		OTP:      otpHandler,
 		Verifier: conn.tokenVerifier,
 		Logger:   l,
+		CORS:     cfg.CORS,
 	})
 
 	// Server
-	srv := command.NewServer(cfg.Server.Port, r, cfg.Server.GetShutdownTimeout(), l)
+	srv := command.NewServer(cfg.Server.ListenAddr(), r, cfg.Server.GetShutdownTimeout(), l)
 
 	return &application{
 		server: srv,
