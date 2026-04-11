@@ -13,7 +13,7 @@ type Config struct {
 	Postgres PostgresConfig `mapstructure:"postgres"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 	Keycloak KeycloakConfig `mapstructure:"keycloak"`
-	Log      LogConfig      `mapstructure:"log"`
+	Observability ObservabilityConfig `mapstructure:"observability"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	Email    EmailConfig    `mapstructure:"email"`
 }
@@ -184,12 +184,13 @@ type TemplatesConfig struct {
 	Verification  string `mapstructure:"verification"`
 }
 
-type LogConfig struct {
-	Level        string `mapstructure:"level"`
-	Format       string `mapstructure:"format"`
-	OTLPEndpoint string `mapstructure:"otlp_endpoint"`
-	Insecure     bool   `mapstructure:"insecure"`
-	TLSCertFile  string `mapstructure:"tls_cert_file"`
+type ObservabilityConfig struct {
+	ServiceName    string `mapstructure:"service_name"`
+	ServiceVersion string `mapstructure:"service_version"`
+	Environment    string `mapstructure:"environment"`
+	LogLevel       string `mapstructure:"log_level"`
+	OTLPEndpoint   string `mapstructure:"otlp_endpoint"`
+	OTLPInsecure   bool   `mapstructure:"otlp_insecure"`
 }
 
 func Load() (*Config, error) {
@@ -221,8 +222,11 @@ func Load() (*Config, error) {
 	v.SetDefault("postgres.sslmode", "disable")
 	v.SetDefault("app.name", "be-modami-auth-service")
 	v.SetDefault("app.version", "1.0.0")
-	v.SetDefault("log.level", "info")
-	v.SetDefault("log.format", "json")
+	v.SetDefault("observability.service_name", "auth-service")
+	v.SetDefault("observability.service_version", "1.0.0")
+	v.SetDefault("observability.environment", "local")
+	v.SetDefault("observability.log_level", "info")
+	v.SetDefault("observability.otlp_insecure", true)
 
 	// Read config.yml
 	if err := v.ReadInConfig(); err != nil {

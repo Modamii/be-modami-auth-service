@@ -5,7 +5,7 @@ app:
   debug: false
   port: 8085
   host: "0.0.0.0"
-  swagger_host: "localhost:8085"
+  swagger_host: "auth.modami.cloud"
   shutdown_timeout: "30s"
   read_timeout: "30s"
   write_timeout: "30s"
@@ -69,9 +69,13 @@ keycloak:
   redirect_url: "http://localhost:8085/v1/auth-services/auth/social/callback"
   frontend_callback_url: "http://localhost:3000/auth/social/callback"
 
-log:
-  level: "info"
-  format: "console"
+observability:
+  service_name: "auth-service"
+  service_version: "1.0.0"
+  environment: "local"
+  log_level: "debug"
+  otlp_endpoint: ""
+  otlp_insecure: true
 
 email:
   smtp:

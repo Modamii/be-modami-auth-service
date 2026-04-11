@@ -33,18 +33,8 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	r.Use(middleware.RequestID())
 	r.Use(middleware.ZapLogger(deps.Logger))
 	r.Use(gin.Recovery())
-
-	origins := deps.AllowedOrigins
-	if len(origins) == 0 {
-		origins = []string{
-			"http://localhost:5173",
-			"http://localhost:3000",
-			"http://localhost:8080",
-			"http://localhost:8081",
-		}
-	}
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     origins,
+		AllowOrigins:     deps.AllowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
 		AllowCredentials: deps.AllowCredentials,

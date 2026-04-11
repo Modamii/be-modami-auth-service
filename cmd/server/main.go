@@ -33,13 +33,12 @@ func main() {
 	docs.SwaggerInfo.Host = cfg.App.SwaggerHost
 
 	logCfg := logging.Config{
-		ServiceName:    cfg.App.Name,
-		ServiceVersion: cfg.App.Version,
-		Environment:    cfg.App.Environment,
-		Level:          cfg.Log.Level,
-		OTLPEndpoint:   cfg.Log.OTLPEndpoint,
-		Insecure:       cfg.Log.Insecure,
-		TLSCertFile:    cfg.Log.TLSCertFile,
+		ServiceName:    cfg.Observability.ServiceName,
+		ServiceVersion: cfg.Observability.ServiceVersion,
+		Environment:    cfg.Observability.Environment,
+		Level:          cfg.Observability.LogLevel,
+		OTLPEndpoint:   cfg.Observability.OTLPEndpoint,
+		Insecure:       cfg.Observability.OTLPInsecure,
 	}
 
 	if err := logger.Init(logCfg); err != nil {

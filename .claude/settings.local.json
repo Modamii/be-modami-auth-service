@@ -31,7 +31,12 @@
       "Bash(docker-compose rm:*)",
       "Bash(docker-compose up:*)",
       "Bash(for svc:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(do)",
+      "Bash(dir=\"/Users/lifegoeson/Documents/ROOT/sources/modami/$svc\")",
+      "Bash(echo \"=== $svc ===\")",
+      "Read(//Users/lifegoeson/Documents/ROOT/sources/modami/be-modami-auth-service/$dir/config/**)",
+      "Bash(done)"
     ]
   }
 }
