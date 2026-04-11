@@ -65,7 +65,7 @@ keycloak:
   base_url: "http://localhost:8180"
   realm: "modami"
   client_id: "modami-api"
-  client_secret: "s5BJlnVAxWjqtP4SqEltrxFwRYTJctlh"
+  client_secret: ""
   admin_user: "admin"
   admin_pass: "admin"
   redirect_url: "http://localhost:8085/v1/auth-services/auth/social/callback"
