@@ -26,7 +26,12 @@
       "Bash(docker ps:*)",
       "Bash(docker exec:*)",
       "Bash(go version:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose rm:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(for svc:*)",
+      "Bash(cd:*)"
     ]
   }
 }

@@ -82,7 +82,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: cmdb_postgres
+    container_name: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_password
@@ -90,7 +90,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      - postgres_data:/var/lib/postgresql/data
       - ./deploy/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -99,9 +101,12 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: cmdb_redis
+    container_name: redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.1
@@ -112,6 +117,10 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    restart: unless-stopped
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "2181" ]
       interval: 10s
@@ -145,6 +154,9 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
+    volumes:
+      - broker_data:/var/lib/kafka/data
+    restart: unless-stopped
     healthcheck:
       test: [ "CMD-SHELL", "kafka-topics --bootstrap-server broker:29092 --list" ]
       interval: 30s
@@ -153,7 +165,7 @@ services:
       start_period: 20s
 
   console:
-    container_name: redpanda-console
+    container_name: redpanda_console
     image: docker.redpanda.com/redpandadata/console:v2.5.1
     environment:
       KAFKA_BROKERS: "broker:29092"
@@ -164,6 +176,7 @@ services:
     ports:
       - 8089:8080
     depends_on: [ broker ]
+    restart: unless-stopped
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
@@ -178,79 +191,174 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8180:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
 
-  # elasticsearch:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
-  #   container_name: cmdb_elasticsearch
-  #   environment:
-  #     - node.name=elasticsearch
-  #     - cluster.name=cluster
-  #     - discovery.type=single-node
-  #     - bootstrap.memory_lock=true
-  #     - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-  #     - xpack.security.enabled=false
-  #     - xpack.security.enrollment.enabled=false
-  #     - xpack.security.http.ssl.enabled=false
-  #     - xpack.security.transport.ssl.enabled=false
-  #   ulimits:
-  #     memlock:
-  #       soft: -1
-  #       hard: -1
-  #   volumes:
-  #     - elasticsearch_data:/usr/share/elasticsearch/data
-  #   ports:
-  #     - "9200:9200"
-  #     - "9300:9300"
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 60s
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
-  # kibana:
-  #   image: docker.elastic.co/kibana/kibana:8.14.3
-  #   container_name: cmdb_kibana
-  #   ports:
-  #     - "5601:5601"
-  #   environment:
-  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-  #   depends_on:
-  #     elasticsearch:
-  #       condition: service_healthy
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.3
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
-  # otel-collector:
-  #   image: otel/opentelemetry-collector-contrib:0.103.1
-  #   container_name: cmdb_otel_collector
-  #   command: ["--config=/etc/otel-collector-config.yaml"]
-  #   volumes:
-  #     - ./config/otel-collector.yaml:/etc/otel-collector-config.yaml
-  #   ports:
-  #     - "4317:4317"   # OTLP gRPC receiver
-  #     - "4318:4318"   # OTLP HTTP receiver
-  #     - "8888:8888"   # Prometheus metrics
-  #     - "8889:8889"   # Prometheus exporter
-  #     - "13133:13133" # Health check
-  #   depends_on:
-  #     elasticsearch:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:13133/"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.103.1
+    container_name: otel_collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./config/otel-collector.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics
+      - "8889:8889"   # Prometheus exporter
+      - "13133:13133" # Health check
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:13133/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  scylladb-node1:
+    image: scylladb/scylla:6.2
+    container_name: scylladb-node1
+    command: --smp 1 --memory 512M --developer-mode 1 --seeds scylladb-node1 --endpoint-snitch GossipingPropertyFileSnitch
+    ports:
+      - "9042:9042"   # CQL
+      - "9160:9160"   # Thrift
+      - "10000:10000" # REST API
+    volumes:
+      - scylladb_node1_data:/var/lib/scylla
+      - ./deploy/scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  scylladb-node2:
+    image: scylladb/scylla:6.2
+    container_name: scylladb-node2
+    command: --smp 1 --memory 512M --developer-mode 1 --seeds scylladb-node1 --endpoint-snitch GossipingPropertyFileSnitch
+    volumes:
+      - scylladb_node2_data:/var/lib/scylla
+      - ./deploy/scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties:ro
+    restart: unless-stopped
+    depends_on:
+      scylladb-node1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  scylladb-node3:
+    image: scylladb/scylla:6.2
+    container_name: scylladb-node3
+    command: --smp 1 --memory 512M --developer-mode 1 --seeds scylladb-node1 --endpoint-snitch GossipingPropertyFileSnitch
+    volumes:
+      - scylladb_node3_data:/var/lib/scylla
+      - ./deploy/scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties:ro
+    restart: unless-stopped
+    depends_on:
+      scylladb-node2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  centrifugo:
+    image: centrifugo/centrifugo:v5
+    container_name: centrifugo
+    command: centrifugo -c /centrifugo/config.json
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./deploy/centrifugo/config.local.json:/centrifugo/config.json:ro
+    environment:
+      # Local-only defaults; replace in real environments
+      CENTRIFUGO_HMAC_SECRET: "local-dev-token-secret"
+      CENTRIFUGO_API_KEY: "CHANGE_ME_API_KEY"
+      CENTRIFUGO_ADMIN_PASSWORD: "CHANGE_ME_ADMIN_PASSWORD"
+      CENTRIFUGO_ADMIN_SECRET: "CHANGE_ME_ADMIN_SECRET"
+    restart: unless-stopped
 
 volumes:
-  elasticsearch_data:
-    driver: local
-  grafana_data:
-    driver: local
-  consul_data:
-    driver: local
   mongo_data:
     driver: local
   minio_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  zookeeper_log:
+    driver: local
+  broker_data:
+    driver: local
+  keycloak_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  kibana_data:
+    driver: local
+  scylladb_node1_data:
+    driver: local
+  scylladb_node2_data:
+    driver: local
+  scylladb_node3_data:
     driver: local

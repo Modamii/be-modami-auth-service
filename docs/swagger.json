@@ -6,7 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "modami-auth.techinsightsworld.com",
+    "host": "localhost:8085",
     "basePath": "/v1/auth-services",
     "paths": {
         "/admin/roles": {

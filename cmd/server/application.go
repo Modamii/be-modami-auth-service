@@ -57,7 +57,7 @@ func newApplication(cfg *config.Config) (*application, error) {
 	})
 
 	// Server
-	srv := command.NewServer(cfg.Server.ListenAddr(), r, cfg.Server.GetShutdownTimeout(), l)
+	srv := command.NewServer(cfg.App.ListenAddr(), r, cfg.App.GetShutdownTimeout(), l)
 
 	return &application{
 		server: srv,

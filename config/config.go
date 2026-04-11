@@ -10,7 +10,6 @@ import (
 
 type Config struct {
 	App      AppConfig      `mapstructure:"app"`
-	Server   ServerConfig   `mapstructure:"server"`
 	CORS     CORSConfig     `mapstructure:"cors"`
 	Postgres PostgresConfig `mapstructure:"postgres"`
 	Redis    RedisConfig    `mapstructure:"redis"`
@@ -27,9 +26,62 @@ type CORSConfig struct {
 }
 
 type AppConfig struct {
-	Name        string `mapstructure:"name"`
-	Version     string `mapstructure:"version"`
-	Environment string `mapstructure:"environment"`
+	Name            string `mapstructure:"name"`
+	Version         string `mapstructure:"version"`
+	Environment     string `mapstructure:"environment"`
+	Debug           bool   `mapstructure:"debug"`
+	Port            int    `mapstructure:"port"`
+	Host            string `mapstructure:"host"`
+	SwaggerHost     string `mapstructure:"swagger_host"`
+	ShutdownTimeout string `mapstructure:"shutdown_timeout"`
+	ReadTimeout     string `mapstructure:"read_timeout"`
+	WriteTimeout    string `mapstructure:"write_timeout"`
+	IdleTimeout     string `mapstructure:"idle_timeout"`
+}
+
+// ListenAddr returns host:port for http.Server (defaults host 0.0.0.0).
+func (a AppConfig) ListenAddr() string {
+	host := strings.TrimSpace(a.Host)
+	if host == "" {
+		host = "0.0.0.0"
+	}
+	port := a.Port
+	if port <= 0 {
+		port = 8085
+	}
+	return fmt.Sprintf("%s:%d", host, port)
+}
+
+func (a AppConfig) GetShutdownTimeout() time.Duration {
+	d, err := time.ParseDuration(a.ShutdownTimeout)
+	if err != nil {
+		return 30 * time.Second
+	}
+	return d
+}
+
+func (a AppConfig) GetReadTimeout() time.Duration {
+	d, err := time.ParseDuration(a.ReadTimeout)
+	if err != nil {
+		return 30 * time.Second
+	}
+	return d
+}
+
+func (a AppConfig) GetWriteTimeout() time.Duration {
+	d, err := time.ParseDuration(a.WriteTimeout)
+	if err != nil {
+		return 30 * time.Second
+	}
+	return d
+}
+
+func (a AppConfig) GetIdleTimeout() time.Duration {
+	d, err := time.ParseDuration(a.IdleTimeout)
+	if err != nil {
+		return 120 * time.Second
+	}
+	return d
 }
 
 type PostgresConfig struct {
@@ -106,33 +158,6 @@ func (k KafkaConfig) GetBrokers() []string {
 	return result
 }
 
-type ServerConfig struct {
-	Host            string `mapstructure:"host"`
-	Port            int    `mapstructure:"port"`
-	ShutdownTimeout string `mapstructure:"shutdown_timeout"`
-}
-
-// ListenAddr returns host:port for http.Server (defaults host 0.0.0.0).
-func (s ServerConfig) ListenAddr() string {
-	host := strings.TrimSpace(s.Host)
-	if host == "" {
-		host = "0.0.0.0"
-	}
-	port := s.Port
-	if port <= 0 {
-		port = 8085
-	}
-	return fmt.Sprintf("%s:%d", host, port)
-}
-
-func (s ServerConfig) GetShutdownTimeout() time.Duration {
-	d, err := time.ParseDuration(s.ShutdownTimeout)
-	if err != nil {
-		return 15 * time.Second
-	}
-	return d
-}
-
 type KeycloakConfig struct {
 	BaseURL                string `mapstructure:"base_url"`
 	Realm                  string `mapstructure:"realm"`
@@ -182,9 +207,13 @@ func Load() (*Config, error) {
 	v.AddConfigPath("./config")
 
 	// Defaults
-	v.SetDefault("server.host", "0.0.0.0")
-	v.SetDefault("server.port", 8085)
-	v.SetDefault("server.shutdown_timeout", "15s")
+	v.SetDefault("app.host", "0.0.0.0")
+	v.SetDefault("app.port", 8085)
+	v.SetDefault("app.shutdown_timeout", "30s")
+	v.SetDefault("app.read_timeout", "30s")
+	v.SetDefault("app.write_timeout", "30s")
+	v.SetDefault("app.idle_timeout", "120s")
+	v.SetDefault("app.swagger_host", "localhost:8085")
 	v.SetDefault("cors.allow_credentials", true)
 	v.SetDefault("cors.allowed_origins", []string{
 		"http://localhost:5173",

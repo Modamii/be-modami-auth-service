@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"be-modami-auth-service/config"
+	"be-modami-auth-service/docs"
 
 	"gitlab.com/lifegoeson-libs/pkg-logging/logger"
 
@@ -15,7 +16,7 @@ import (
 // @title           Modami Auth Service API
 // @version         1.0
 // @description     Authentication service for the Modami marketplace platform.
-// @host            modami-auth.techinsightsworld.com
+// @host            localhost:8085
 // @BasePath        /v1/auth-services
 
 // @securityDefinitions.apikey BearerAuth
@@ -28,6 +29,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+
+	docs.SwaggerInfo.Host = cfg.App.SwaggerHost
 
 	logCfg := logging.Config{
 		ServiceName:    cfg.App.Name,
