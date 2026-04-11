@@ -10,7 +10,6 @@ import (
 
 type Config struct {
 	App      AppConfig      `mapstructure:"app"`
-	CORS     CORSConfig     `mapstructure:"cors"`
 	Postgres PostgresConfig `mapstructure:"postgres"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 	Keycloak KeycloakConfig `mapstructure:"keycloak"`
@@ -19,24 +18,20 @@ type Config struct {
 	Email    EmailConfig    `mapstructure:"email"`
 }
 
-// CORSConfig controls gin-contrib/cors for browser clients.
-type CORSConfig struct {
-	AllowedOrigins   []string `mapstructure:"allowed_origins"`
-	AllowCredentials bool     `mapstructure:"allow_credentials"`
-}
-
 type AppConfig struct {
-	Name            string `mapstructure:"name"`
-	Version         string `mapstructure:"version"`
-	Environment     string `mapstructure:"environment"`
-	Debug           bool   `mapstructure:"debug"`
-	Port            int    `mapstructure:"port"`
-	Host            string `mapstructure:"host"`
-	SwaggerHost     string `mapstructure:"swagger_host"`
-	ShutdownTimeout string `mapstructure:"shutdown_timeout"`
-	ReadTimeout     string `mapstructure:"read_timeout"`
-	WriteTimeout    string `mapstructure:"write_timeout"`
-	IdleTimeout     string `mapstructure:"idle_timeout"`
+	Name             string   `mapstructure:"name"`
+	Version          string   `mapstructure:"version"`
+	Environment      string   `mapstructure:"environment"`
+	Debug            bool     `mapstructure:"debug"`
+	Port             int      `mapstructure:"port"`
+	Host             string   `mapstructure:"host"`
+	SwaggerHost      string   `mapstructure:"swagger_host"`
+	ShutdownTimeout  string   `mapstructure:"shutdown_timeout"`
+	ReadTimeout      string   `mapstructure:"read_timeout"`
+	WriteTimeout     string   `mapstructure:"write_timeout"`
+	IdleTimeout      string   `mapstructure:"idle_timeout"`
+	AllowCredentials bool     `mapstructure:"allow_credentials"`
+	AllowedOrigins   []string `mapstructure:"allowed_origins"`
 }
 
 // ListenAddr returns host:port for http.Server (defaults host 0.0.0.0).
@@ -214,8 +209,8 @@ func Load() (*Config, error) {
 	v.SetDefault("app.write_timeout", "30s")
 	v.SetDefault("app.idle_timeout", "120s")
 	v.SetDefault("app.swagger_host", "localhost:8085")
-	v.SetDefault("cors.allow_credentials", true)
-	v.SetDefault("cors.allowed_origins", []string{
+	v.SetDefault("app.allow_credentials", true)
+	v.SetDefault("app.allowed_origins", []string{
 		"http://localhost:5173",
 		"http://localhost:3000",
 		"http://localhost:8080",

@@ -53,7 +53,8 @@ func newApplication(cfg *config.Config) (*application, error) {
 		OTP:      otpHandler,
 		Verifier: conn.tokenVerifier,
 		Logger:   l,
-		CORS:     cfg.CORS,
+		AllowedOrigins:   cfg.App.AllowedOrigins,
+		AllowCredentials: cfg.App.AllowCredentials,
 	})
 
 	// Server

@@ -1,7 +1,6 @@
 package http
 
 import (
-	"be-modami-auth-service/config"
 	"be-modami-auth-service/internal/delivery/http/handler"
 	"be-modami-auth-service/internal/delivery/http/middleware"
 	"be-modami-auth-service/internal/usecase"
@@ -23,7 +22,8 @@ type RouterDeps struct {
 	OTP      *handler.OTPHandler
 	Verifier usecase.TokenVerifier
 	Logger   logging.Logger
-	CORS     config.CORSConfig
+	AllowedOrigins   []string
+	AllowCredentials bool
 }
 
 func NewRouter(deps RouterDeps) *gin.Engine {
@@ -34,7 +34,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	r.Use(middleware.ZapLogger(deps.Logger))
 	r.Use(gin.Recovery())
 
-	origins := deps.CORS.AllowedOrigins
+	origins := deps.AllowedOrigins
 	if len(origins) == 0 {
 		origins = []string{
 			"http://localhost:5173",
@@ -47,7 +47,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		AllowOrigins:     origins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
-		AllowCredentials: deps.CORS.AllowCredentials,
+		AllowCredentials: deps.AllowCredentials,
 		MaxAge:           300,
 	}))
 
