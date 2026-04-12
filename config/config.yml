@@ -5,7 +5,7 @@ app:
   debug: false
   port: 8085
   host: "0.0.0.0"
-  swagger_host: "auth.modami.cloud"
+  swagger_host: "localhost:8085"
   shutdown_timeout: "30s"
   read_timeout: "30s"
   write_timeout: "30s"
@@ -63,7 +63,7 @@ keycloak:
   base_url: "http://localhost:8180"
   realm: "modami"
   client_id: "modami-api"
-  client_secret: ""
+  client_secret: "hxQZlhx1ORAXnmA3S5YnhQ7S9bGTyvPy"
   admin_user: "admin"
   admin_pass: "admin"
   redirect_url: "http://localhost:8085/v1/auth-services/auth/social/callback"

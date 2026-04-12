@@ -330,9 +330,9 @@ services:
     environment:
       # Local-only defaults; replace in real environments
       CENTRIFUGO_HMAC_SECRET: "local-dev-token-secret"
-      CENTRIFUGO_API_KEY: "CHANGE_ME_API_KEY"
-      CENTRIFUGO_ADMIN_PASSWORD: "CHANGE_ME_ADMIN_PASSWORD"
-      CENTRIFUGO_ADMIN_SECRET: "CHANGE_ME_ADMIN_SECRET"
+      CENTRIFUGO_API_KEY: "centrifugo-api-key"
+      CENTRIFUGO_ADMIN_PASSWORD: "admin-password"
+      CENTRIFUGO_ADMIN_SECRET: "admin-secret"
     restart: unless-stopped
 
 volumes:

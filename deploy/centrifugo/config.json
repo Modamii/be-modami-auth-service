@@ -6,31 +6,45 @@
     "password": "${CENTRIFUGO_ADMIN_PASSWORD}",
     "secret": "${CENTRIFUGO_ADMIN_SECRET}"
   },
+
   "engine": "redis",
   "redis_address": "redis:6379",
   "redis_password": "${REDIS_PASSWORD}",
 
-  "proxy_connect_endpoint": "http://ws-gateway:8084/centrifugo/connect",
+  "allowed_origins": ["https://app.modami.com"],
+  "client_channel_limit": 128,
+  "log_level": "info",
+
+  "proxy_connect_endpoint": "http://noti-ws-gateway:7072/centrifugo/connect",
   "proxy_connect_timeout": "5s",
-
-  "proxy_subscribe_endpoint": "http://ws-gateway:8084/centrifugo/subscribe",
-  "proxy_subscribe_timeout": "3s",
-
-  "proxy_publish_endpoint": "http://ws-gateway:8084/centrifugo/publish",
-  "proxy_publish_timeout": "3s",
 
   "namespaces": [
     {
-      "name": "notifications",
-      "presence": true,
-      "history_size": 50,
-      "history_ttl": "300s",
+      "name": "noti",
+      "presence": false,
+      "history_size": 20,
+      "history_ttl": "7d",
       "recover": true,
       "proxy_subscribe": true,
-      "proxy_publish": true
+      "proxy_subscribe_endpoint": "http://noti-ws-gateway:7072/centrifugo/subscribe",
+      "proxy_subscribe_timeout": "3s",
+      "proxy_publish": true,
+      "proxy_publish_endpoint": "http://noti-ws-gateway:7072/centrifugo/publish",
+      "proxy_publish_timeout": "3s"
+    },
+    {
+      "name": "chat",
+      "presence": true,
+      "join_leave": true,
+      "history_size": 100,
+      "history_ttl": "24h",
+      "recover": true,
+      "proxy_subscribe": true,
+      "proxy_subscribe_endpoint": "http://chat-ws-gateway:PORT/centrifugo/subscribe",
+      "proxy_subscribe_timeout": "3s",
+      "proxy_publish": true,
+      "proxy_publish_endpoint": "http://chat-ws-gateway:PORT/centrifugo/publish",
+      "proxy_publish_timeout": "3s"
     }
-  ],
-  "allowed_origins": ["*"],
-  "client_channel_limit": 128,
-  "log_level": "info"
+  ]
 }

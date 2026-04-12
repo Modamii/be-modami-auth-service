@@ -36,7 +36,8 @@
       "Bash(dir=\"/Users/lifegoeson/Documents/ROOT/sources/modami/$svc\")",
       "Bash(echo \"=== $svc ===\")",
       "Read(//Users/lifegoeson/Documents/ROOT/sources/modami/be-modami-auth-service/$dir/config/**)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(docker-compose restart:*)"
     ]
   }
 }
