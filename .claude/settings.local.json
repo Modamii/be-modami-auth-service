@@ -37,7 +37,11 @@
       "Bash(echo \"=== $svc ===\")",
       "Read(//Users/lifegoeson/Documents/ROOT/sources/modami/be-modami-auth-service/$dir/config/**)",
       "Bash(done)",
-      "Bash(docker-compose restart:*)"
+      "Bash(docker-compose restart:*)",
+      "Bash(echo \"=== be-modami-$svc-service ===\")",
+      "Read(//Users/lifegoeson/Documents/ROOT/sources/modami/be-modami-$svc-service/**)",
+      "Read(//Users/lifegoeson/go/pkg/mod/gitlab.com/lifegoeson-libs/pkg-gokit@v1.0.1/kafka/**)",
+      "Read(//Users/lifegoeson/go/pkg/mod/gitlab.com/lifegoeson-libs/pkg-gokit@v1.0.1/kafka/events/**)"
     ]
   }
 }

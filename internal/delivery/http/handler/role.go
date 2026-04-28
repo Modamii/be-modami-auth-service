@@ -2,7 +2,6 @@ package handler
 
 import (
 	"be-modami-auth-service/internal/usecase"
-	"be-modami-auth-service/pkg/response"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/gin-gonic/gin"
@@ -23,17 +22,17 @@ func NewRole(keycloak *usecase.KeycloakUseCase) *Role {
 // @Tags         admin
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {object} response.Response
-// @Failure      401 {object} response.Response
-// @Failure      403 {object} response.Response
+// @Success      200 {object} map[string]interface{}
+// @Failure      401 {object} map[string]interface{}
+// @Failure      403 {object} map[string]interface{}
 // @Router       /admin/roles [get]
 func (h *Role) ListRealmRoles(c *gin.Context) {
 	roles, err := h.keycloak.GetRealmRoles(c.Request.Context())
 	if err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadGateway, "failed to fetch roles").WithError(err))
+		respondError(c, apperror.New(apperror.CodeBadGateway, "failed to fetch roles").WithError(err))
 		return
 	}
-	response.OK(c, roles)
+	respondOK(c, roles)
 }
 
 // GetUserRoles godoc
@@ -43,23 +42,23 @@ func (h *Role) ListRealmRoles(c *gin.Context) {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path string true "User ID"
-// @Success      200 {object} response.Response
-// @Failure      401 {object} response.Response
-// @Failure      403 {object} response.Response
+// @Success      200 {object} map[string]interface{}
+// @Failure      401 {object} map[string]interface{}
+// @Failure      403 {object} map[string]interface{}
 // @Router       /admin/users/{id}/roles [get]
 func (h *Role) GetUserRoles(c *gin.Context) {
 	userID := c.Param("id")
 	if userID == "" {
-		response.Error(c, apperror.ErrBadRequest)
+		respondError(c, apperror.ErrBadRequest)
 		return
 	}
 
 	roles, err := h.keycloak.GetUserRealmRoles(c.Request.Context(), userID)
 	if err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadGateway, "failed to fetch user roles").WithError(err))
+		respondError(c, apperror.New(apperror.CodeBadGateway, "failed to fetch user roles").WithError(err))
 		return
 	}
-	response.OK(c, roles)
+	respondOK(c, roles)
 }
 
 type assignRolesRequest struct {
@@ -76,28 +75,28 @@ type assignRolesRequest struct {
 // @Param        id path string true "User ID"
 // @Param        request body assignRolesRequest true "Roles to assign"
 // @Success      204
-// @Failure      401 {object} response.Response
-// @Failure      403 {object} response.Response
+// @Failure      401 {object} map[string]interface{}
+// @Failure      403 {object} map[string]interface{}
 // @Router       /admin/users/{id}/roles [post]
 func (h *Role) AssignRoles(c *gin.Context) {
 	userID := c.Param("id")
 	if userID == "" {
-		response.Error(c, apperror.ErrBadRequest)
+		respondError(c, apperror.ErrBadRequest)
 		return
 	}
 
 	var req assignRolesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		respondError(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 
 	if err := h.keycloak.AssignRealmRoles(c.Request.Context(), userID, req.Roles); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadGateway, "failed to assign roles").WithError(err))
+		respondError(c, apperror.New(apperror.CodeBadGateway, "failed to assign roles").WithError(err))
 		return
 	}
 
-	response.NoContent(c)
+	respondNoContent(c)
 }
 
 // RemoveRoles godoc
@@ -110,26 +109,26 @@ func (h *Role) AssignRoles(c *gin.Context) {
 // @Param        id path string true "User ID"
 // @Param        request body assignRolesRequest true "Roles to remove"
 // @Success      204
-// @Failure      401 {object} response.Response
-// @Failure      403 {object} response.Response
+// @Failure      401 {object} map[string]interface{}
+// @Failure      403 {object} map[string]interface{}
 // @Router       /admin/users/{id}/roles [delete]
 func (h *Role) RemoveRoles(c *gin.Context) {
 	userID := c.Param("id")
 	if userID == "" {
-		response.Error(c, apperror.ErrBadRequest)
+		respondError(c, apperror.ErrBadRequest)
 		return
 	}
 
 	var req assignRolesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
+		respondError(c, apperror.New(apperror.CodeBadRequest, "invalid request body").WithError(err))
 		return
 	}
 
 	if err := h.keycloak.RemoveRealmRoles(c.Request.Context(), userID, req.Roles); err != nil {
-		response.Error(c, apperror.New(apperror.CodeBadGateway, "failed to remove roles").WithError(err))
+		respondError(c, apperror.New(apperror.CodeBadGateway, "failed to remove roles").WithError(err))
 		return
 	}
 
-	response.NoContent(c)
+	respondNoContent(c)
 }

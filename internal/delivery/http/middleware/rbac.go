@@ -2,17 +2,17 @@ package middleware
 
 import (
 	"be-modami-auth-service/pkg/ctxutil"
-	"be-modami-auth-service/pkg/response"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/lifegoeson-libs/pkg-gokit/apperror"
+	pkgresponse "gitlab.com/lifegoeson-libs/pkg-gokit/response"
 )
 
 func RequireRealmRole(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims, ok := ctxutil.GetClaims(c)
 		if !ok {
-			response.Error(c, apperror.ErrUnauthorized)
+			pkgresponse.Unauthorized(c.Writer, "unauthorized")
+			c.Abort()
 			return
 		}
 
@@ -23,7 +23,8 @@ func RequireRealmRole(roles ...string) gin.HandlerFunc {
 			}
 		}
 
-		response.Error(c, apperror.ErrForbidden)
+		pkgresponse.Forbidden(c.Writer, "forbidden")
+		c.Abort()
 	}
 }
 
@@ -31,7 +32,8 @@ func RequireClientRole(clientID string, roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims, ok := ctxutil.GetClaims(c)
 		if !ok {
-			response.Error(c, apperror.ErrUnauthorized)
+			pkgresponse.Unauthorized(c.Writer, "unauthorized")
+			c.Abort()
 			return
 		}
 
@@ -42,6 +44,7 @@ func RequireClientRole(clientID string, roles ...string) gin.HandlerFunc {
 			}
 		}
 
-		response.Error(c, apperror.ErrForbidden)
+		pkgresponse.Forbidden(c.Writer, "forbidden")
+		c.Abort()
 	}
 }

@@ -334,7 +334,9 @@ services:
       CENTRIFUGO_ADMIN_PASSWORD: "admin-password"
       CENTRIFUGO_ADMIN_SECRET: "admin-secret"
     restart: unless-stopped
-
+    depends_on:
+      redis:
+        condition: service_healthy
 volumes:
   mongo_data:
     driver: local

@@ -11,11 +11,9 @@ import (
 	"be-modami-auth-service/pkg/auth"
 	"be-modami-auth-service/pkg/db"
 	"be-modami-auth-service/pkg/email"
-	"be-modami-auth-service/pkg/kafka"
-	pkgredis "be-modami-auth-service/pkg/storage/redis"
-
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/redis/go-redis/v9"
+	pkgkafka "gitlab.com/lifegoeson-libs/pkg-gokit/kafka"
+	pkgredis "gitlab.com/lifegoeson-libs/pkg-gokit/redis"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
@@ -24,9 +22,9 @@ type connections struct {
 	keycloakUC     *usecase.KeycloakUseCase
 	authKeycloakUC *usecase.AuthKeycloakUseCase
 	tokenVerifier  usecase.TokenVerifier
-	kafkaService   *kafka.KafkaService
+	kafkaService   *pkgkafka.KafkaService
+	cacheAdapter   pkgredis.CachePort
 	otpUseCase     usecase.OTPUseCase
-	redisClient    *redis.Client
 }
 
 func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger logging.Logger) (*connections, error) {
@@ -53,19 +51,22 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	}
 
 	// Redis
+	var cacheService pkgredis.CachePort
 	if cfg.Redis.Host != "" {
-		conn.redisClient = redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
+		redisCfg := pkgredis.Config{
+			Addrs:    []string{fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)},
 			Password: cfg.Redis.Pass,
-			Username: cfg.Redis.UserName,
 			DB:       cfg.Redis.Database,
 			PoolSize: cfg.Redis.PoolSize,
-		})
-		if err := conn.redisClient.Ping(ctx).Err(); err != nil {
-			return nil, fmt.Errorf("redis ping: %w", err)
 		}
+		adapter, err := pkgredis.NewAdapter(redisCfg)
+		if err != nil {
+			return nil, fmt.Errorf("redis connect: %w", err)
+		}
+		conn.cacheAdapter = adapter
+		cacheService = adapter
 		health.AddCheck(func(ctx context.Context) error {
-			return conn.redisClient.Ping(ctx).Err()
+			return adapter.Ping(ctx)
 		})
 		logger.Info("Redis connected", logging.String("addr", fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)))
 	} else {
@@ -73,15 +74,17 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	}
 
 	// Kafka (optional)
-	var kafkaProducer kafka.Producer
+	var kafkaProducer pkgkafka.Producer
 	if cfg.Kafka.Enable && len(cfg.Kafka.GetBrokers()) > 0 {
-		kafkaSvc, err := kafka.NewKafkaService(nil, cfg)
+		kafkaCfg := pkgkafka.Config{
+			Brokers:          cfg.Kafka.GetBrokers(),
+			ClientID:         cfg.Kafka.ClientID,
+			ProducerOnlyMode: true,
+		}
+		kafkaSvc, err := pkgkafka.NewKafkaService(&kafkaCfg)
 		if err != nil {
 			logger.Warn("failed to initialize Kafka, events will be disabled", logging.Any("error", err.Error()))
 		} else {
-			if err := kafkaSvc.EnsureTopics(ctx); err != nil {
-				logger.Warn("failed to ensure Kafka topics", logging.Any("error", err.Error()))
-			}
 			conn.kafkaService = kafkaSvc
 			kafkaProducer = kafkaSvc
 			health.AddCheck(func(ctx context.Context) error {
@@ -91,12 +94,6 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		}
 	} else {
 		logger.Warn("Kafka brokers not configured, events will be disabled")
-	}
-
-	// Redis cache service (used by social login state + OTP)
-	var cacheService *pkgredis.CacheService
-	if conn.redisClient != nil {
-		cacheService = pkgredis.NewCacheService(conn.redisClient)
 	}
 
 	// Keycloak
@@ -165,7 +162,7 @@ func (c *connections) Close() {
 	if c.kafkaService != nil {
 		c.kafkaService.Close()
 	}
-	if c.redisClient != nil {
-		c.redisClient.Close()
+	if c.cacheAdapter != nil {
+		c.cacheAdapter.Close()
 	}
 }

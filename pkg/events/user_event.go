@@ -1,10 +1,19 @@
 package events
 
-import "time"
+import (
+	"time"
 
-// UserCreatedPayload is the payload for the user.created event.
+	pkgevents "gitlab.com/lifegoeson-libs/pkg-gokit/kafka/events"
+)
+
+const (
+	TopicUserCreated  = "modami.auth.user.created"
+	TopicUserUpdated  = "modami.auth.user.updated"
+	TopicSocialLogin  = "modami.auth.social.login"
+)
+
 type UserCreatedPayload struct {
-	BaseEventPayload
+	pkgevents.BaseEventPayload
 	UserID    string `json:"userId"`
 	Email     string `json:"email"`
 	Username  string `json:"username"`
@@ -14,7 +23,7 @@ type UserCreatedPayload struct {
 
 func NewUserCreatedPayload(userID, email, username, firstName, lastName string) *UserCreatedPayload {
 	return &UserCreatedPayload{
-		BaseEventPayload: BaseEventPayload{
+		BaseEventPayload: pkgevents.BaseEventPayload{
 			Type:      "user.created",
 			Timestamp: time.Now(),
 		},
@@ -26,9 +35,8 @@ func NewUserCreatedPayload(userID, email, username, firstName, lastName string) 
 	}
 }
 
-// UserUpdatedPayload is the payload for the user.updated event.
 type UserUpdatedPayload struct {
-	BaseEventPayload
+	pkgevents.BaseEventPayload
 	UserID    string `json:"userId"`
 	Email     string `json:"email"`
 	FirstName string `json:"firstName"`
@@ -37,7 +45,7 @@ type UserUpdatedPayload struct {
 
 func NewUserUpdatedPayload(userID, email, firstName, lastName string) *UserUpdatedPayload {
 	return &UserUpdatedPayload{
-		BaseEventPayload: BaseEventPayload{
+		BaseEventPayload: pkgevents.BaseEventPayload{
 			Type:      "user.updated",
 			Timestamp: time.Now(),
 		},
@@ -48,16 +56,15 @@ func NewUserUpdatedPayload(userID, email, firstName, lastName string) *UserUpdat
 	}
 }
 
-// SocialLoginPayload is the payload for the auth.social.login event.
 type SocialLoginPayload struct {
-	BaseEventPayload
+	pkgevents.BaseEventPayload
 	Provider string `json:"provider"`
 	Email    string `json:"email"`
 }
 
 func NewSocialLoginPayload(provider, email string) *SocialLoginPayload {
 	return &SocialLoginPayload{
-		BaseEventPayload: BaseEventPayload{
+		BaseEventPayload: pkgevents.BaseEventPayload{
 			Type:      "auth.social.login",
 			Timestamp: time.Now(),
 		},

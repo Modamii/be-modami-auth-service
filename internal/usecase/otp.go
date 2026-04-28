@@ -10,8 +10,8 @@ import (
 	"be-modami-auth-service/internal/entity"
 	"be-modami-auth-service/pkg/auth"
 	"be-modami-auth-service/pkg/email"
-	pkgredis "be-modami-auth-service/pkg/storage/redis"
 
+	pkgredis "gitlab.com/lifegoeson-libs/pkg-gokit/redis"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 	"gitlab.com/lifegoeson-libs/pkg-logging/logger"
 )
@@ -33,7 +33,7 @@ type otpUseCase struct {
 	resetTokenService *auth.ResetTokenService
 	emailService      *email.EmailService
 	authKC            *AuthKeycloakUseCase
-	cache             *pkgredis.CacheService
+	cache             pkgredis.CachePort
 }
 
 func NewOTPUseCase(
@@ -41,7 +41,7 @@ func NewOTPUseCase(
 	resetTokenService *auth.ResetTokenService,
 	emailService *email.EmailService,
 	authKC *AuthKeycloakUseCase,
-	cache *pkgredis.CacheService,
+	cache pkgredis.CachePort,
 ) OTPUseCase {
 	return &otpUseCase{
 		otpService:        otpService,
@@ -156,13 +156,14 @@ func (uc *otpUseCase) afterVerifyRegister(ctx context.Context, emailAddr string,
 		return nil, fmt.Errorf("mật khẩu phải có ít nhất 8 ký tự")
 	}
 
-	// Idempotency lock
+	// Idempotency lock via pipeline SetNX
 	lockKey := registerLockPrefix + emailAddr
-	acquired, err := uc.cache.SetNX(ctx, lockKey, "1", registerLockTTL)
-	if err != nil {
+	pipe := uc.cache.Pipeline()
+	setNXCmd := pipe.SetNX(ctx, lockKey, "1", registerLockTTL)
+	if _, err := pipe.Exec(ctx); err != nil {
 		return nil, fmt.Errorf("không thể khởi tạo phiên đăng ký")
 	}
-	if !acquired {
+	if !setNXCmd.Val() {
 		return nil, fmt.Errorf("đang xử lý đăng ký, vui lòng thử lại sau")
 	}
 

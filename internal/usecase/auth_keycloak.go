@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"be-modami-auth-service/internal/entity"
-	"be-modami-auth-service/pkg/kafka"
-	"be-modami-auth-service/pkg/kafka/events"
+	"be-modami-auth-service/pkg/events"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"gitlab.com/lifegoeson-libs/pkg-gokit/apperror"
+	pkgkafka "gitlab.com/lifegoeson-libs/pkg-gokit/kafka"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
 
@@ -25,7 +25,7 @@ type AuthKeycloakUseCase struct {
 	cfg      KeycloakConfig
 	logger   logging.Logger
 	admin    *KeycloakUseCase
-	producer kafka.Producer
+	producer pkgkafka.Producer
 	cache    CacheService
 }
 
@@ -33,10 +33,10 @@ type AuthKeycloakUseCase struct {
 type CacheService interface {
 	SetJSON(ctx context.Context, key string, value any, ttl time.Duration) error
 	GetJSON(ctx context.Context, key string, dest any) error
-	Delete(ctx context.Context, key string) error
+	Delete(ctx context.Context, keys ...string) error
 }
 
-func NewAuthKeycloakUseCase(cfg KeycloakConfig, admin *KeycloakUseCase, logger logging.Logger, producer kafka.Producer, cache CacheService) *AuthKeycloakUseCase {
+func NewAuthKeycloakUseCase(cfg KeycloakConfig, admin *KeycloakUseCase, logger logging.Logger, producer pkgkafka.Producer, cache CacheService) *AuthKeycloakUseCase {
 	return &AuthKeycloakUseCase{
 		client:   gocloak.NewClient(cfg.BaseURL),
 		cfg:      cfg,
@@ -90,11 +90,9 @@ func (uc *AuthKeycloakUseCase) Register(ctx context.Context, req entity.Register
 	}
 
 	if uc.producer != nil {
-		topics := kafka.GetKafkaTopics()
-		payload := events.NewUserCreatedPayload(userID, req.Email, req.Username, req.FirstName, req.LastName)
-		uc.producer.EmitAsync(ctx, topics.User.Created, &kafka.ProducerMessage{
+		uc.producer.EmitAsync(ctx, events.TopicUserCreated, &pkgkafka.ProducerMessage{
 			Key:   userID,
-			Value: payload,
+			Value: events.NewUserCreatedPayload(userID, req.Email, req.Username, req.FirstName, req.LastName),
 		})
 	}
 
@@ -248,14 +246,10 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state str
 		return nil, apperror.New(apperror.CodeBadGateway, "không thể phân tích phản hồi từ dịch vụ xác thực").WithError(err)
 	}
 
-	// Emit Kafka social login event
 	if uc.producer != nil && stateData != nil {
-		provider := stateData["provider"]
-		topics := kafka.GetKafkaTopics()
-		payload := events.NewSocialLoginPayload(provider, "")
-		uc.producer.EmitAsync(ctx, topics.Auth.SocialLogin, &kafka.ProducerMessage{
+		uc.producer.EmitAsync(ctx, events.TopicSocialLogin, &pkgkafka.ProducerMessage{
 			Key:   state,
-			Value: payload,
+			Value: events.NewSocialLoginPayload(stateData["provider"], ""),
 		})
 	}
 
@@ -323,11 +317,9 @@ func (uc *AuthKeycloakUseCase) RegisterWithVerifiedEmail(ctx context.Context, re
 	}
 
 	if uc.producer != nil {
-		topics := kafka.GetKafkaTopics()
-		payload := events.NewUserCreatedPayload(userID, req.Email, req.Username, req.FirstName, req.LastName)
-		uc.producer.EmitAsync(ctx, topics.User.Created, &kafka.ProducerMessage{
+		uc.producer.EmitAsync(ctx, events.TopicUserCreated, &pkgkafka.ProducerMessage{
 			Key:   userID,
-			Value: payload,
+			Value: events.NewUserCreatedPayload(userID, req.Email, req.Username, req.FirstName, req.LastName),
 		})
 	}
 
@@ -379,15 +371,9 @@ func (uc *AuthKeycloakUseCase) UpdateUserEmail(ctx context.Context, userID, newE
 	}
 
 	if uc.producer != nil {
-		topics := kafka.GetKafkaTopics()
-		payload := events.NewUserUpdatedPayload(userID,
-			newEmail,
-			derefStr(user.FirstName),
-			derefStr(user.LastName),
-		)
-		uc.producer.EmitAsync(ctx, topics.User.Updated, &kafka.ProducerMessage{
+		uc.producer.EmitAsync(ctx, events.TopicUserUpdated, &pkgkafka.ProducerMessage{
 			Key:   userID,
-			Value: payload,
+			Value: events.NewUserUpdatedPayload(userID, newEmail, derefStr(user.FirstName), derefStr(user.LastName)),
 		})
 	}
 
@@ -440,15 +426,9 @@ func (uc *AuthKeycloakUseCase) UpdateProfile(ctx context.Context, userID string,
 	}
 
 	if uc.producer != nil {
-		topics := kafka.GetKafkaTopics()
-		payload := events.NewUserUpdatedPayload(userID,
-			derefStr(user.Email),
-			derefStr(user.FirstName),
-			derefStr(user.LastName),
-		)
-		uc.producer.EmitAsync(ctx, topics.User.Updated, &kafka.ProducerMessage{
+		uc.producer.EmitAsync(ctx, events.TopicUserUpdated, &pkgkafka.ProducerMessage{
 			Key:   userID,
-			Value: payload,
+			Value: events.NewUserUpdatedPayload(userID, derefStr(user.Email), derefStr(user.FirstName), derefStr(user.LastName)),
 		})
 	}
 

@@ -7,9 +7,7 @@ import (
 	"math/big"
 	"time"
 
-	pkgredis "be-modami-auth-service/pkg/storage/redis"
-
-	goredis "github.com/redis/go-redis/v9"
+	pkgredis "gitlab.com/lifegoeson-libs/pkg-gokit/redis"
 )
 
 const (
@@ -18,7 +16,6 @@ const (
 )
 
 // OTPPurpose identifies the flow that requested the OTP.
-// Each purpose has its own Redis key prefix and TTL.
 type OTPPurpose string
 
 const (
@@ -35,10 +32,10 @@ type OTPData struct {
 
 // OTPService handles OTP generation, storage, and validation via Redis.
 type OTPService struct {
-	cache *pkgredis.CacheService
+	cache pkgredis.CachePort
 }
 
-func NewOTPService(cache *pkgredis.CacheService) *OTPService {
+func NewOTPService(cache pkgredis.CachePort) *OTPService {
 	return &OTPService{cache: cache}
 }
 
@@ -66,26 +63,19 @@ func (s *OTPService) GenerateOTP() (string, error) {
 }
 
 // StoreOTP saves the OTP in Redis.
-// Key format: otp:{purpose}:{identifier}
 func (s *OTPService) StoreOTP(ctx context.Context, purpose OTPPurpose, identifier, code string) error {
 	key := buildKey(purpose, identifier)
-	data := OTPData{
-		Code:  code,
-		Retry: 0,
-	}
+	data := OTPData{Code: code, Retry: 0}
 	return s.cache.SetJSON(ctx, key, data, ttlForPurpose(purpose))
 }
 
 // ValidateOTP checks the OTP for the given purpose and identifier.
-// Returns (true, nil) on success.
-// On mismatch it increments the retry counter; if maxRetries is reached
-// the key is deleted and an error is returned.
 func (s *OTPService) ValidateOTP(ctx context.Context, purpose OTPPurpose, identifier, code string) (bool, error) {
 	key := buildKey(purpose, identifier)
 
 	var data OTPData
 	if err := s.cache.GetJSON(ctx, key, &data); err != nil {
-		if err == goredis.Nil {
+		if err == pkgredis.ErrCacheMiss {
 			return false, fmt.Errorf("otp not found or expired")
 		}
 		return false, fmt.Errorf("read otp: %w", err)
@@ -97,8 +87,9 @@ func (s *OTPService) ValidateOTP(ctx context.Context, purpose OTPPurpose, identi
 	}
 
 	if data.Code != code {
-		newRetry, _ := s.cache.JSONIncrementField(ctx, key, "retry", 1)
-		if newRetry >= int64(maxRetries) {
+		// Increment retry; use current known value + 1 to decide eviction.
+		_ = s.cache.JSONIncrementField(ctx, key, "retry", 1)
+		if data.Retry+1 >= int64(maxRetries) {
 			_ = s.cache.Delete(ctx, key)
 			return false, fmt.Errorf("max retry exceeded")
 		}
