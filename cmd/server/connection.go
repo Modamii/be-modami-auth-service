@@ -79,7 +79,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 
 	// Kafka 
 	var kafkaProducer pkgkafka.Producer
-	if cfg.Kafka.Enable && len(cfg.Kafka.GetBrokers()) > 0 {
+	if len(cfg.Kafka.GetBrokers()) > 0 {
 		kafkaCfg := pkgkafka.Config{
 			Brokers:          cfg.Kafka.GetBrokers(),
 			ClientID:         cfg.Kafka.ClientID,

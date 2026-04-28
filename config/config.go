@@ -126,7 +126,6 @@ type RedisTLSConfig struct {
 
 type KafkaConfig struct {
 	BrokerList             string `mapstructure:"broker_list"`
-	Enable                 bool   `mapstructure:"enable"`
 	TLSEnable              bool   `mapstructure:"tls_enable"`
 	Partition              int    `mapstructure:"partition"`
 	Partitioner            string `mapstructure:"partitioner"`
