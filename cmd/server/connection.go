@@ -32,7 +32,7 @@ type connections struct {
 func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger logging.Logger) (*connections, error) {
 	conn := &connections{}
 
-	// Database (optional)
+	// Database 
 	if cfg.Postgres.Host != "" {
 		pool, err := db.NewPool(ctx, cfg.Postgres.WriterURL(), cfg.Postgres.MaxActiveConns, cfg.Postgres.MaxIdleConns)
 		if err != nil {
@@ -77,7 +77,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		logger.Warn("redis host not set, OTP features will be disabled")
 	}
 
-	// Kafka (optional)
+	// Kafka 
 	var kafkaProducer pkgkafka.Producer
 	if cfg.Kafka.Enable && len(cfg.Kafka.GetBrokers()) > 0 {
 		kafkaCfg := pkgkafka.Config{
@@ -114,7 +114,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	conn.keycloakUC = usecase.NewKeycloakUseCase(keycloakCfg, logger)
 	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, kafkaProducer, cacheService)
 
-	// OIDC token verifier (optional)
+	// OIDC token verifier 
 	if cfg.Keycloak.BaseURL != "" && cfg.Keycloak.Realm != "" {
 		issuerURL := cfg.Keycloak.BaseURL + "/realms/" + cfg.Keycloak.Realm
 		uc, err := usecase.NewAuthUseCase(ctx, issuerURL, cfg.Keycloak.ClientID, logger)
@@ -131,7 +131,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		logger.Warn("Keycloak not configured, OIDC middleware disabled")
 	}
 
-	// OTP (requires Redis + Email config)
+	// OTP 
 	if cacheService != nil && cfg.Email.SMTP.Host != "" {
 		otpService := auth.NewOTPService(cacheService)
 		resetTokenService := auth.NewResetTokenService(cacheService)

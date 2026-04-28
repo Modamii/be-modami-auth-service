@@ -202,32 +202,6 @@ func Load() (*Config, error) {
 	v.AddConfigPath(".")
 	v.AddConfigPath("./config")
 
-	// Defaults
-	v.SetDefault("app.host", "0.0.0.0")
-	v.SetDefault("app.port", 8085)
-	v.SetDefault("app.shutdown_timeout", "30s")
-	v.SetDefault("app.read_timeout", "30s")
-	v.SetDefault("app.write_timeout", "30s")
-	v.SetDefault("app.idle_timeout", "120s")
-	v.SetDefault("app.swagger_host", "localhost:8085")
-	v.SetDefault("app.allow_credentials", true)
-	v.SetDefault("app.allowed_origins", []string{
-		"http://localhost:5173",
-		"http://localhost:3000",
-		"http://localhost:8080",
-		"http://localhost:8081",
-	})
-	v.SetDefault("postgres.max_idle_conns", 5)
-	v.SetDefault("postgres.max_active_conns", 25)
-	v.SetDefault("postgres.sslmode", "disable")
-	v.SetDefault("app.name", "be-modami-auth-service")
-	v.SetDefault("app.version", "1.0.0")
-	v.SetDefault("observability.service_name", "auth-service")
-	v.SetDefault("observability.service_version", "1.0.0")
-	v.SetDefault("observability.environment", "local")
-	v.SetDefault("observability.log_level", "info")
-	v.SetDefault("observability.otlp_insecure", true)
-
 	// Read config.yml
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
