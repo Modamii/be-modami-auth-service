@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"be-modami-auth-service/config"
 	"be-modami-auth-service/internal/delivery/http/handler"
@@ -54,21 +55,23 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	var cacheService pkgredis.CachePort
 	if cfg.Redis.Host != "" {
 		redisCfg := pkgredis.Config{
-			Addrs:    []string{fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)},
-			Password: cfg.Redis.Pass,
-			DB:       cfg.Redis.Database,
-			PoolSize: cfg.Redis.PoolSize,
+			Addrs:       []string{fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)},
+			Password:    cfg.Redis.Pass,
+			DB:          cfg.Redis.Database,
+			PoolSize:    cfg.Redis.PoolSize,
+			DialTimeout: 5 * time.Second,
 		}
 		adapter, err := pkgredis.NewAdapter(redisCfg)
 		if err != nil {
-			return nil, fmt.Errorf("redis connect: %w", err)
+			logger.Warn("failed to connect to Redis, OTP features will be disabled", logging.Any("error", err.Error()))
+		} else {
+			conn.cacheAdapter = adapter
+			cacheService = adapter
+			health.AddCheck(func(ctx context.Context) error {
+				return adapter.Ping(ctx)
+			})
+			logger.Info("Redis connected", logging.String("addr", fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)))
 		}
-		conn.cacheAdapter = adapter
-		cacheService = adapter
-		health.AddCheck(func(ctx context.Context) error {
-			return adapter.Ping(ctx)
-		})
-		logger.Info("Redis connected", logging.String("addr", fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)))
 	} else {
 		logger.Warn("redis host not set, OTP features will be disabled")
 	}

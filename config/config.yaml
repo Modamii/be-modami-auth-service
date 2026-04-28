@@ -1,0 +1,71 @@
+app:
+  name: be-modami-auth-service
+  version: 1.0.0
+  environment: local
+  debug: true
+  port: 8085
+  host: 0.0.0.0
+  swagger_host: localhost:8085
+  shutdown_timeout: 30s
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  allow_credentials: true
+  allowed_origins:
+    - http://localhost:5173
+    - http://localhost:3000
+    - http://localhost:8080
+    - http://localhost:8081
+
+postgres:
+  host: localhost
+  port: 5432
+  database: be-modami-auth-service
+  user_writer: postgres
+  password_writer: postgres_password
+  user_reader: postgres
+  password_reader: postgres_password
+  sslmode: disable
+  max_idle_conns: 5
+  max_active_conns: 25
+
+redis:
+  host: localhost
+  port: 6379
+  database: 0
+  pool_size: 10
+  pass: redis_password
+  user_name: ""
+
+keycloak:
+  base_url: http://localhost:8180
+  realm: modami
+  client_id: modami-auth
+  client_secret: ""
+  admin_user: admin
+  admin_pass: admin
+  redirect_url: http://localhost:8085/v1/auth/callback
+  frontend_callback_url: http://localhost:5173/auth/callback
+
+kafka:
+  enable: true
+  broker_list: localhost:9092
+  client_id: be-modami-auth-service
+  consumer_group_id: be-modami-auth-service
+
+email:
+  smtp:
+    host: ""
+    port: 587
+    username: ""
+    password: ""
+    from_email: noreply@modami.com
+    from_name: Modami
+
+observability:
+  service_name: auth-service
+  service_version: 1.0.0
+  environment: local
+  log_level: info
+  otlp_endpoint: localhost:4317
+  otlp_insecure: true

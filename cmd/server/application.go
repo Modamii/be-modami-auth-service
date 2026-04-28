@@ -21,7 +21,7 @@ type application struct {
 }
 
 func newApplication(cfg *config.Config) (*application, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	l := logger.L()

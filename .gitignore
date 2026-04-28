@@ -6,6 +6,7 @@ tmp/
 *.dll
 *.so
 *.dylib
+docker-compose.yml
 
 # Test
 *.test
