@@ -10,8 +10,9 @@ import (
 	"be-modami-auth-service/internal/delivery/http/handler"
 	"be-modami-auth-service/internal/usecase"
 	"be-modami-auth-service/pkg/auth"
-	"be-modami-auth-service/pkg/db"
 	"be-modami-auth-service/pkg/email"
+	db "be-modami-auth-service/pkg/postgres"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	pkgkafka "gitlab.com/lifegoeson-libs/pkg-gokit/kafka"
 	pkgredis "gitlab.com/lifegoeson-libs/pkg-gokit/redis"

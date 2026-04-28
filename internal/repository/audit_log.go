@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"be-modami-auth-service/pkg/db/sqlc"
+	"be-modami-auth-service/pkg/postgres/sqlc"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
