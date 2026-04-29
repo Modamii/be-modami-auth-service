@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_ORG   = 'modamii'
+        DOCKER_ORG   = 'lifegoeson34'
         SERVICE_NAME = 'be-modami-auth-service'
         FULL_IMAGE   = "${DOCKER_ORG}/${SERVICE_NAME}"
     }
