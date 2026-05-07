@@ -31,17 +31,14 @@ func main() {
 	}
 
 	docs.SwaggerInfo.Host = cfg.App.SwaggerHost
-
-	logCfg := logging.Config{
+	if err := logger.Init(logging.Config{
 		ServiceName:    cfg.Observability.ServiceName,
 		ServiceVersion: cfg.Observability.ServiceVersion,
 		Environment:    cfg.Observability.Environment,
 		Level:          cfg.Observability.LogLevel,
 		OTLPEndpoint:   cfg.Observability.OTLPEndpoint,
 		Insecure:       cfg.Observability.OTLPInsecure,
-	}
-
-	if err := logger.Init(logCfg); err != nil {
+	}); err != nil {
 		log.Fatalf("failed to init logger: %v", err)
 	}
 	defer logger.Shutdown(context.Background())

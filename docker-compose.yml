@@ -291,42 +291,6 @@ services:
       retries: 10
       start_period: 60s
 
-  scylladb-node2:
-    image: scylladb/scylla:6.2
-    container_name: scylladb-node2
-    command: --smp 1 --memory 512M --developer-mode 1 --seeds scylladb-node1 --endpoint-snitch GossipingPropertyFileSnitch
-    volumes:
-      - scylladb_node2_data:/var/lib/scylla
-      - ./deploy/scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties:ro
-    restart: unless-stopped
-    depends_on:
-      scylladb-node1:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
-
-  scylladb-node3:
-    image: scylladb/scylla:6.2
-    container_name: scylladb-node3
-    command: --smp 1 --memory 512M --developer-mode 1 --seeds scylladb-node1 --endpoint-snitch GossipingPropertyFileSnitch
-    volumes:
-      - scylladb_node3_data:/var/lib/scylla
-      - ./deploy/scylladb/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties:ro
-    restart: unless-stopped
-    depends_on:
-      scylladb-node2:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
-
   centrifugo:
     image: centrifugo/centrifugo:v5
     container_name: centrifugo

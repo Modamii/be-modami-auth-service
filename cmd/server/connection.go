@@ -32,72 +32,59 @@ type connections struct {
 func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger logging.Logger) (*connections, error) {
 	conn := &connections{}
 
-	// Database 
-	if cfg.Postgres.Host != "" {
-		pool, err := db.NewPool(ctx, cfg.Postgres.WriterURL(), cfg.Postgres.MaxActiveConns, cfg.Postgres.MaxIdleConns)
-		if err != nil {
-			return nil, err
-		}
-		conn.dbPool = pool
-		health.AddCheck(func(ctx context.Context) error {
-			return pool.Ping(ctx)
-		})
-		logger.Info("database connected")
-
-		if err := db.RunMigrations(pool); err != nil {
-			return nil, fmt.Errorf("run migrations: %w", err)
-		}
-		logger.Info("database migrations applied")
-	} else {
-		logger.Warn("postgres host not set, skipping database")
+	// Database
+	pool, err := db.NewPool(ctx, cfg.Postgres.WriterURL(), cfg.Postgres.MaxActiveConns, cfg.Postgres.MaxIdleConns)
+	if err != nil {
+		return nil, err
 	}
+	conn.dbPool = pool
+	health.AddCheck(func(ctx context.Context) error {
+		return pool.Ping(ctx)
+	})
+	logger.Info("database connected")
+	if err := db.RunMigrations(pool); err != nil {
+		return nil, fmt.Errorf("run migrations: %w", err)
+	}
+	logger.Info("database migrations applied")
 
 	// Redis
 	var cacheService pkgredis.CachePort
-	if cfg.Redis.Host != "" {
-		redisCfg := pkgredis.Config{
-			Addrs:       []string{fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)},
-			Password:    cfg.Redis.Pass,
-			DB:          cfg.Redis.Database,
-			PoolSize:    cfg.Redis.PoolSize,
-			DialTimeout: 5 * time.Second,
-		}
-		adapter, err := pkgredis.NewAdapter(redisCfg)
-		if err != nil {
-			logger.Warn("failed to connect to Redis, OTP features will be disabled", logging.Any("error", err.Error()))
-		} else {
-			conn.cacheAdapter = adapter
-			cacheService = adapter
-			health.AddCheck(func(ctx context.Context) error {
-				return adapter.Ping(ctx)
-			})
-			logger.Info("Redis connected", logging.String("addr", fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)))
-		}
+	redisCfg := pkgredis.Config{
+		Addrs:       []string{fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)},
+		Password:    cfg.Redis.Pass,
+		DB:          cfg.Redis.Database,
+		PoolSize:    cfg.Redis.PoolSize,
+		DialTimeout: 5 * time.Second,
+	}
+	adapter, err := pkgredis.NewAdapter(redisCfg)
+	if err != nil {
+		logger.Warn("failed to connect to Redis, OTP features will be disabled", logging.Any("error", err.Error()))
 	} else {
-		logger.Warn("redis host not set, OTP features will be disabled")
+		conn.cacheAdapter = adapter
+		cacheService = adapter
+		health.AddCheck(func(ctx context.Context) error {
+			return adapter.Ping(ctx)
+		})
+		logger.Info("Redis connected", logging.String("addr", fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)))
 	}
 
-	// Kafka 
+	// Kafka
 	var kafkaProducer pkgkafka.Producer
-	if len(cfg.Kafka.GetBrokers()) > 0 {
-		kafkaCfg := pkgkafka.Config{
-			Brokers:          cfg.Kafka.GetBrokers(),
-			ClientID:         cfg.Kafka.ClientID,
-			ProducerOnlyMode: true,
-		}
-		kafkaSvc, err := pkgkafka.NewKafkaService(&kafkaCfg)
-		if err != nil {
-			logger.Warn("failed to initialize Kafka, events will be disabled", logging.Any("error", err.Error()))
-		} else {
-			conn.kafkaService = kafkaSvc
-			kafkaProducer = kafkaSvc
-			health.AddCheck(func(ctx context.Context) error {
-				return kafkaSvc.Ping(ctx)
-			})
-			logger.Info("Kafka connected", logging.Any("brokers", cfg.Kafka.GetBrokers()))
-		}
+	kafkaCfg := pkgkafka.Config{
+		Brokers:          cfg.Kafka.GetBrokers(),
+		ClientID:         cfg.Kafka.ClientID,
+		ProducerOnlyMode: true,
+	}
+	kafkaSvc, err := pkgkafka.NewKafkaService(&kafkaCfg)
+	if err != nil {
+		logger.Warn("failed to initialize Kafka, events will be disabled", logging.Any("error", err.Error()))
 	} else {
-		logger.Warn("Kafka brokers not configured, events will be disabled")
+		conn.kafkaService = kafkaSvc
+		kafkaProducer = kafkaSvc
+		health.AddCheck(func(ctx context.Context) error {
+			return kafkaSvc.Ping(ctx)
+		})
+		logger.Info("Kafka connected", logging.Any("brokers", cfg.Kafka.GetBrokers()))
 	}
 
 	// Keycloak
@@ -114,48 +101,39 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	conn.keycloakUC = usecase.NewKeycloakUseCase(keycloakCfg, logger)
 	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, kafkaProducer, cacheService)
 
-	// OIDC token verifier 
-	if cfg.Keycloak.BaseURL != "" && cfg.Keycloak.Realm != "" {
-		issuerURL := cfg.Keycloak.BaseURL + "/realms/" + cfg.Keycloak.Realm
-		uc, err := usecase.NewAuthUseCase(ctx, issuerURL, cfg.Keycloak.ClientID, logger)
-		if err != nil {
-			logger.Warn("OIDC provider not available, token verification disabled", logging.Any("error", err.Error()))
-		} else {
-			conn.tokenVerifier = uc
-			health.AddCheck(func(ctx context.Context) error {
-				return conn.keycloakUC.Ping(ctx)
-			})
-			logger.Info("OIDC provider initialized", logging.String("issuer", issuerURL))
-		}
+	// OIDC token verifier
+	issuerURL := cfg.Keycloak.BaseURL + "/realms/" + cfg.Keycloak.Realm
+	uc, err := usecase.NewAuthUseCase(ctx, issuerURL, cfg.Keycloak.ClientID, logger)
+	if err != nil {
+		logger.Warn("OIDC provider not available, token verification disabled", logging.Any("error", err.Error()))
 	} else {
-		logger.Warn("Keycloak not configured, OIDC middleware disabled")
+		conn.tokenVerifier = uc
+		health.AddCheck(func(ctx context.Context) error {
+			return conn.keycloakUC.Ping(ctx)
+		})
+		logger.Info("OIDC provider initialized", logging.String("issuer", issuerURL))
 	}
 
-	// OTP 
-	if cacheService != nil && cfg.Email.SMTP.Host != "" {
-		otpService := auth.NewOTPService(cacheService)
-		resetTokenService := auth.NewResetTokenService(cacheService)
-		emailService := email.NewEmailService(&email.EmailConfig{
-			SMTPHost:     cfg.Email.SMTP.Host,
-			SMTPPort:     strconv.Itoa(cfg.Email.SMTP.Port),
-			SMTPUsername: cfg.Email.SMTP.Username,
-			SMTPPassword: cfg.Email.SMTP.Password,
-			FromEmail:    cfg.Email.SMTP.FromEmail,
-			FromName:     cfg.Email.SMTP.FromName,
-		}, ctx)
+	// OTP
+	otpService := auth.NewOTPService(cacheService)
+	resetTokenService := auth.NewResetTokenService(cacheService)
+	emailService := email.NewEmailService(&email.EmailConfig{
+		SMTPHost:     cfg.Email.SMTP.Host,
+		SMTPPort:     strconv.Itoa(cfg.Email.SMTP.Port),
+		SMTPUsername: cfg.Email.SMTP.Username,
+		SMTPPassword: cfg.Email.SMTP.Password,
+		FromEmail:    cfg.Email.SMTP.FromEmail,
+		FromName:     cfg.Email.SMTP.FromName,
+	}, ctx)
 
-		conn.otpUseCase = usecase.NewOTPUseCase(
-			otpService,
-			resetTokenService,
-			emailService,
-			conn.authKeycloakUC,
-			cacheService,
-		)
-		logger.Info("OTP service initialized")
-	} else {
-		logger.Warn("OTP disabled (requires Redis + Email config)")
-	}
-
+	conn.otpUseCase = usecase.NewOTPUseCase(
+		otpService,
+		resetTokenService,
+		emailService,
+		conn.authKeycloakUC,
+		cacheService,
+	)
+	logger.Info("OTP service initialized")
 	return conn, nil
 }
 
