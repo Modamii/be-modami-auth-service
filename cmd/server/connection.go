@@ -9,12 +9,13 @@ import (
 	"be-modami-auth-service/config"
 	"be-modami-auth-service/internal/delivery/http/handler"
 	"be-modami-auth-service/internal/usecase"
+	"be-modami-auth-service/migrations"
 	"be-modami-auth-service/pkg/auth"
 	"be-modami-auth-service/pkg/email"
-	db "be-modami-auth-service/pkg/postgres"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	pkgkafka "gitlab.com/lifegoeson-libs/pkg-gokit/kafka"
+	pkgpostgres "gitlab.com/lifegoeson-libs/pkg-gokit/postgresql"
 	pkgredis "gitlab.com/lifegoeson-libs/pkg-gokit/redis"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 )
@@ -33,16 +34,26 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	conn := &connections{}
 
 	// Database
-	pool, err := db.NewPool(ctx, cfg.Postgres.WriterURL(), cfg.Postgres.MaxActiveConns, cfg.Postgres.MaxIdleConns)
+	pool, _, err := pkgpostgres.Connect(ctx, pkgpostgres.Config{
+		Host:           cfg.Postgres.Host,
+		Port:           cfg.Postgres.Port,
+		User:           cfg.Postgres.UserWriter,
+		Password:       cfg.Postgres.PasswordWriter,
+		Database:       cfg.Postgres.Database,
+		SSLMode:        cfg.Postgres.SSLMode,
+		MaxConns:       cfg.Postgres.MaxActiveConns,
+		MinConns:       cfg.Postgres.MaxIdleConns,
+		ConnectTimeout: 30 * time.Second,
+	})
 	if err != nil {
+		logger.Error("failed to connect to PostgreSQL", err)
 		return nil, err
 	}
 	conn.dbPool = pool
 	health.AddCheck(func(ctx context.Context) error {
 		return pool.Ping(ctx)
 	})
-	logger.Info("database connected")
-	if err := db.RunMigrations(pool); err != nil {
+	if err := migrations.RunMigrations(pool); err != nil {
 		return nil, fmt.Errorf("run migrations: %w", err)
 	}
 	logger.Info("database migrations applied")

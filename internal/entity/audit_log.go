@@ -1,0 +1,17 @@
+package entity
+
+import (
+	"net/netip"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type AuditLog struct {
+	ID        int64      `json:"id"`
+	UserID    pgtype.UUID `json:"user_id"`
+	Action    string      `json:"action"`
+	Detail    []byte     `json:"detail"`
+	IPAddress *netip.Prefix `json:"ip_address"`
+	CreatedAt time.Time   `json:"created_at"`
+}

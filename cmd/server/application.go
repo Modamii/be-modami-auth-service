@@ -5,18 +5,17 @@ import (
 	"time"
 
 	"be-modami-auth-service/config"
-	"be-modami-auth-service/internal/command"
 	deliveryhttp "be-modami-auth-service/internal/delivery/http"
 	"be-modami-auth-service/internal/delivery/http/handler"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 	"gitlab.com/lifegoeson-libs/pkg-logging/logger"
-	pkgloggingmw "gitlab.com/lifegoeson-libs/pkg-logging/middleware"
 )
 
 type application struct {
-	server *command.Server
+	router *gin.Engine
 	conn   *connections
 	logger logging.Logger
 }
@@ -31,6 +30,7 @@ func newApplication(cfg *config.Config) (*application, error) {
 
 	conn, err := initConnections(ctx, cfg, health, l)
 	if err != nil {
+		logger.FromContext(ctx).Error("failed to initialize connections", err)
 		return nil, err
 	}
 
@@ -52,22 +52,11 @@ func newApplication(cfg *config.Config) (*application, error) {
 		AllowCredentials: cfg.App.AllowCredentials,
 	})
 
-	wrappedRouter := pkgloggingmw.HTTPMiddleware("auth-service", r, &pkgloggingmw.HttpLoggingOptions{
-		ExceptRoutes: []string{"/healthz", "/readyz"},
-	})
-
-	// Server
-	srv := command.NewServer(cfg.App.ListenAddr(), wrappedRouter, cfg.App.GetShutdownTimeout(), l)
-
 	return &application{
-		server: srv,
+		router: r,
 		conn:   conn,
 		logger: l,
 	}, nil
-}
-
-func (a *application) Run() error {
-	return a.server.Run()
 }
 
 func (a *application) Close() {

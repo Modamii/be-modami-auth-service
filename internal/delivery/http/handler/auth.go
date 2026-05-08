@@ -33,20 +33,19 @@ func NewAuth(authUC *usecase.AuthKeycloakUseCase) *Auth {
 // @Failure      401 {object} response.Response
 // @Router       /auth/login [post]
 func (h *Auth) Login(c *gin.Context) {
-	panic("hello")
-	// var req entity.LoginRequest
-	// if err := c.ShouldBindJSON(&req); err != nil {
-	// 	utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
-	// 	return
-	// }
+	var req entity.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
+		return
+	}
 
-	// resp, err := h.authUC.Login(c.Request.Context(), req)
-	// if err != nil {
-	// 	utils.RespondError(c, err)
-	// 	return
-	// }
+	resp, err := h.authUC.Login(c.Request.Context(), req)
+	if err != nil {
+		utils.RespondError(c, err)
+		return
+	}
 
-	// utils.RespondOK(c, resp)
+	utils.RespondOK(c, resp)
 }
 
 // Register godoc

@@ -16,7 +16,7 @@ require (
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.1
 	github.com/swaggo/swag v1.16.6
-	gitlab.com/lifegoeson-libs/pkg-gokit v1.0.0
+	gitlab.com/lifegoeson-libs/pkg-gokit v1.0.1
 	gitlab.com/lifegoeson-libs/pkg-logging v1.0.4
 )
 

@@ -1,4 +1,4 @@
-package db
+package migrations
 
 import (
 	"embed"
@@ -11,16 +11,15 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 )
 
-//go:embed migrations/*.sql
+//go:embed *.sql
 var migrationFiles embed.FS
 
 // RunMigrations applies all pending up migrations embedded in the binary.
 // It is safe to call on every startup — already-applied migrations are skipped.
 func RunMigrations(pool *pgxpool.Pool) error {
-	// Convert pgxpool to sql.DB for golang-migrate
 	db := stdlib.OpenDBFromPool(pool)
 
-	src, err := iofs.New(migrationFiles, "migrations")
+	src, err := iofs.New(migrationFiles, ".")
 	if err != nil {
 		return fmt.Errorf("migration source: %w", err)
 	}
