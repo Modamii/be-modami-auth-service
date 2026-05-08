@@ -28,8 +28,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
-	r.Use(middleware.RequestID())
-	r.Use(gin.Recovery())
+	// r.Use(gin.Recovery())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     deps.AllowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -59,19 +58,14 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		auth.PUT("/auth/password", deps.Auth.ChangePassword)
 		auth.PUT("/auth/profile", deps.Auth.UpdateProfile)
 
-		// Unified OTP endpoints (purpose dispatched inside handler)
-		if deps.OTP != nil {
-			auth.POST("/otp/send", deps.OTP.SendOTP)
-			auth.POST("/otp/verify", deps.OTP.VerifyOTP)
-			auth.POST("/reset-password", deps.OTP.ResetPassword)
-		}
+		auth.POST("/otp/send", deps.OTP.SendOTP) 
+		auth.POST("/otp/verify", deps.OTP.VerifyOTP)
+		auth.POST("/reset-password", deps.OTP.ResetPassword)
 	}
 
 	// Protected API
 	api := r.Group("/v1/auth-services")
-	if deps.Verifier != nil {
-		api.Use(middleware.OIDC(deps.Verifier))
-	}
+	api.Use(middleware.OIDC(deps.Verifier))
 	{
 		admin := api.Group("/admin", middleware.RequireRealmRole("admin"))
 		{

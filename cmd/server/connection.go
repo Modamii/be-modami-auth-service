@@ -99,14 +99,13 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	issuerURL := cfg.Keycloak.BaseURL + "/realms/" + cfg.Keycloak.Realm
 	uc, err := usecase.NewAuthUseCase(ctx, issuerURL, cfg.Keycloak.ClientID, logger)
 	if err != nil {
-		logger.Warn("OIDC provider not available, token verification disabled", logging.Any("error", err.Error()))
-	} else {
-		conn.tokenVerifier = uc
-		health.AddCheck(func(ctx context.Context) error {
-			return conn.keycloakUC.Ping(ctx)
-		})
-		logger.Info("OIDC provider initialized", logging.String("issuer", issuerURL))
+		return nil, fmt.Errorf("init OIDC provider: %w", err)
 	}
+	conn.tokenVerifier = uc
+	health.AddCheck(func(ctx context.Context) error {
+		return conn.keycloakUC.Ping(ctx)
+	})
+	logger.Info("OIDC provider initialized", logging.String("issuer", issuerURL))
 
 	// OTP
 	otpService := auth.NewOTPService(conn.cacheAdapter)
@@ -119,7 +118,6 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		FromEmail:    cfg.Email.SMTP.FromEmail,
 		FromName:     cfg.Email.SMTP.FromName,
 	}, ctx)
-
 	conn.otpUseCase = usecase.NewOTPUseCase(
 		otpService,
 		resetTokenService,
@@ -128,6 +126,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		conn.cacheAdapter,
 	)
 	logger.Info("OTP service initialized")
+	
 	return conn, nil
 }
 

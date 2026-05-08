@@ -1,30 +1,16 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 
 	"be-modami-auth-service/internal/delivery/http/dto"
 	"be-modami-auth-service/internal/usecase"
 	"be-modami-auth-service/pkg/ctxutil"
+	"be-modami-auth-service/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
-
-func formatValidationErrors(err error) []string {
-	ve, ok := err.(validator.ValidationErrors)
-	if !ok {
-		return []string{err.Error()}
-	}
-	out := make([]string, 0, len(ve))
-	for _, fe := range ve {
-		out = append(out, fmt.Sprintf("field '%s' failed on '%s' validation",
-			strings.ToLower(fe.Field()), fe.Tag()))
-	}
-	return out
-}
 
 type OTPHandler struct {
 	otpUsecase usecase.OTPUseCase
@@ -55,7 +41,7 @@ func (h *OTPHandler) SendOTP(c *gin.Context) {
 		return
 	}
 	if err := h.validator.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": formatValidationErrors(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": utils.FormatValidationErrors(err)})
 		return
 	}
 
@@ -94,7 +80,7 @@ func (h *OTPHandler) VerifyOTP(c *gin.Context) {
 		return
 	}
 	if err := h.validator.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": formatValidationErrors(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": utils.FormatValidationErrors(err)})
 		return
 	}
 
@@ -143,7 +129,7 @@ func (h *OTPHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 	if err := h.validator.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": formatValidationErrors(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Xác thực dữ liệu thất bại", "details": utils.FormatValidationErrors(err)})
 		return
 	}
 	if err := h.otpUsecase.ResetPassword(c.Request.Context(), req.ResetToken, req.NewPassword); err != nil {

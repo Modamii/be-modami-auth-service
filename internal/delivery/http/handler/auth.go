@@ -8,6 +8,7 @@ import (
 	"be-modami-auth-service/internal/entity"
 	"be-modami-auth-service/internal/usecase"
 	"be-modami-auth-service/pkg/ctxutil"
+	"be-modami-auth-service/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/lifegoeson-libs/pkg-gokit/apperror"
@@ -32,19 +33,20 @@ func NewAuth(authUC *usecase.AuthKeycloakUseCase) *Auth {
 // @Failure      401 {object} response.Response
 // @Router       /auth/login [post]
 func (h *Auth) Login(c *gin.Context) {
-	var req entity.LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
-		return
-	}
+	panic("hello")
+	// var req entity.LoginRequest
+	// if err := c.ShouldBindJSON(&req); err != nil {
+	// 	utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
+	// 	return
+	// }
 
-	resp, err := h.authUC.Login(c.Request.Context(), req)
-	if err != nil {
-		respondError(c, err)
-		return
-	}
+	// resp, err := h.authUC.Login(c.Request.Context(), req)
+	// if err != nil {
+	// 	utils.RespondError(c, err)
+	// 	return
+	// }
 
-	respondOK(c, resp)
+	// utils.RespondOK(c, resp)
 }
 
 // Register godoc
@@ -61,17 +63,17 @@ func (h *Auth) Login(c *gin.Context) {
 func (h *Auth) Register(c *gin.Context) {
 	var req entity.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
 	resp, err := h.authUC.Register(c.Request.Context(), req)
 	if err != nil {
-		respondError(c, err)
+		utils.RespondError(c, err)
 		return
 	}
 
-	respondCreated(c, resp)
+	utils.RespondCreated(c, resp)
 }
 
 // Logout godoc
@@ -87,16 +89,16 @@ func (h *Auth) Register(c *gin.Context) {
 func (h *Auth) Logout(c *gin.Context) {
 	var req entity.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
 	if err := h.authUC.Logout(c.Request.Context(), req); err != nil {
-		respondError(c, err)
+		utils.RespondError(c, err)
 		return
 	}
 
-	respondNoContent(c)
+	utils.RespondNoContent(c)
 }
 
 // RefreshToken godoc
@@ -112,17 +114,17 @@ func (h *Auth) Logout(c *gin.Context) {
 func (h *Auth) RefreshToken(c *gin.Context) {
 	var req entity.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
 	resp, err := h.authUC.RefreshToken(c.Request.Context(), req)
 	if err != nil {
-		respondError(c, err)
+		utils.RespondError(c, err)
 		return
 	}
 
-	respondOK(c, resp)
+	utils.RespondOK(c, resp)
 }
 
 // ForgotPassword godoc
@@ -138,16 +140,16 @@ func (h *Auth) RefreshToken(c *gin.Context) {
 func (h *Auth) ForgotPassword(c *gin.Context) {
 	var req entity.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
 	if err := h.authUC.ForgotPassword(c.Request.Context(), req); err != nil {
-		respondError(c, err)
+		utils.RespondError(c, err)
 		return
 	}
 
-	respondOK(c, gin.H{"message": "nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi"})
+	utils.RespondOK(c, gin.H{"message": "nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi"})
 }
 
 // SocialLogin godoc
@@ -162,17 +164,17 @@ func (h *Auth) ForgotPassword(c *gin.Context) {
 func (h *Auth) SocialLogin(c *gin.Context) {
 	provider := c.Query("provider")
 	if provider == "" {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "thiếu tham số provider"))
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "thiếu tham số provider"))
 		return
 	}
 
 	resp, err := h.authUC.SocialLoginURL(c.Request.Context(), provider)
 	if err != nil {
-		respondError(c, err)
+		utils.RespondError(c, err)
 		return
 	}
 
-	respondOK(c, resp)
+	utils.RespondOK(c, resp)
 }
 
 // SocialCallback godoc
@@ -187,14 +189,14 @@ func (h *Auth) SocialLogin(c *gin.Context) {
 func (h *Auth) SocialCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "code query parameter is required"))
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "code query parameter is required"))
 		return
 	}
 	state := c.Query("state")
 
 	resp, err := h.authUC.ExchangeCode(c.Request.Context(), code, state)
 	if err != nil {
-		respondError(c, err)
+		utils.RespondError(c, err)
 		return
 	}
 
@@ -212,7 +214,7 @@ func (h *Auth) SocialCallback(c *gin.Context) {
 		return
 	}
 
-	respondOK(c, resp)
+	utils.RespondOK(c, resp)
 }
 
 // ChangePassword godoc
@@ -229,42 +231,42 @@ func (h *Auth) SocialCallback(c *gin.Context) {
 func (h *Auth) ChangePassword(c *gin.Context) {
 	claims, ok := ctxutil.GetClaims(c)
 	if !ok {
-		respondError(c, apperror.ErrUnauthorized)
+		utils.RespondError(c, apperror.ErrUnauthorized)
 		return
 	}
 
 	var req entity.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
 	if err := h.authUC.ChangePassword(c.Request.Context(), claims.PreferredUsername, req.OldPassword, req.NewPassword); err != nil {
-		respondError(c, err)
+		utils.RespondError(c, err)
 		return
 	}
 
-	respondNoContent(c)
+	utils.RespondNoContent(c)
 }
 
 
 func (h *Auth) UpdateProfile(c *gin.Context) {
 	claims, ok := ctxutil.GetClaims(c)
 	if !ok {
-		respondError(c, apperror.ErrUnauthorized)
+		utils.RespondError(c, apperror.ErrUnauthorized)
 		return
 	}
 
 	var req entity.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
+		utils.RespondError(c, apperror.New(apperror.CodeBadRequest, "dữ liệu yêu cầu không hợp lệ").WithError(err))
 		return
 	}
 
 	if err := h.authUC.UpdateProfile(c.Request.Context(), claims.Sub, req); err != nil {
-		respondError(c, err)
+		utils.RespondError(c, err)
 		return
 	}
 
-	respondNoContent(c)
+	utils.RespondNoContent(c)
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"be-modami-auth-service/internal/usecase"
 	"be-modami-auth-service/pkg/ctxutil"
+	"be-modami-auth-service/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/lifegoeson-libs/pkg-gokit/apperror"
@@ -20,34 +21,34 @@ func NewUser(keycloak *usecase.KeycloakUseCase) *User {
 func (h *User) Me(c *gin.Context) {
 	claims, ok := ctxutil.GetClaims(c)
 	if !ok {
-		respondError(c, apperror.ErrUnauthorized)
+		utils.RespondError(c, apperror.ErrUnauthorized)
 		return
 	}
-	respondOK(c, claims)
+	utils.RespondOK(c, claims)
 }
 
 
 func (h *User) List(c *gin.Context) {
 	users, err := h.keycloak.GetUsers(c.Request.Context(), 0, 50)
 	if err != nil {
-		respondError(c, apperror.New(apperror.CodeBadGateway, "failed to fetch users").WithError(err))
+		utils.RespondError(c, apperror.New(apperror.CodeBadGateway, "failed to fetch users").WithError(err))
 		return
 	}
-	respondOK(c, users)
+	utils.RespondOK(c, users)
 }
 
 
 func (h *User) GetByID(c *gin.Context) {
 	userID := c.Param("id")
 	if userID == "" {
-		respondError(c, apperror.ErrBadRequest)
+		utils.RespondError(c, apperror.ErrBadRequest)
 		return
 	}
 
 	user, err := h.keycloak.GetUserByID(c.Request.Context(), userID)
 	if err != nil {
-		respondError(c, apperror.New(apperror.CodeBadGateway, "failed to fetch user").WithError(err))
+		utils.RespondError(c, apperror.New(apperror.CodeBadGateway, "failed to fetch user").WithError(err))
 		return
 	}
-	respondOK(c, user)
+	utils.RespondOK(c, user)
 }
