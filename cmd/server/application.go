@@ -12,6 +12,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 	"gitlab.com/lifegoeson-libs/pkg-logging/logger"
+	pkgloggingmw "gitlab.com/lifegoeson-libs/pkg-logging/middleware"
 )
 
 type application struct {
@@ -37,28 +38,26 @@ func newApplication(cfg *config.Config) (*application, error) {
 	authHandler := handler.NewAuth(conn.authKeycloakUC)
 	userHandler := handler.NewUser(conn.keycloakUC)
 	roleHandler := handler.NewRole(conn.keycloakUC)
-
-	// OTP handler (optional — depends on Redis + Email)
-	var otpHandler *handler.OTPHandler
-	if conn.otpUseCase != nil {
-		otpHandler = handler.NewOTPHandler(conn.otpUseCase, validator.New())
-	}
+	otpHandler := handler.NewOTPHandler(conn.otpUseCase, validator.New())
 
 	// Router
 	r := deliveryhttp.NewRouter(deliveryhttp.RouterDeps{
-		Health:   health,
-		Auth:     authHandler,
-		User:     userHandler,
-		Role:     roleHandler,
-		OTP:      otpHandler,
-		Verifier: conn.tokenVerifier,
-		Logger:   l,
+		Health:           health,
+		Auth:             authHandler,
+		User:             userHandler,
+		Role:             roleHandler,
+		OTP:              otpHandler,
+		Verifier:         conn.tokenVerifier,
 		AllowedOrigins:   cfg.App.AllowedOrigins,
 		AllowCredentials: cfg.App.AllowCredentials,
 	})
 
+	wrappedRouter := pkgloggingmw.HTTPMiddleware("auth-service", r, &pkgloggingmw.HttpLoggingOptions{
+		ExceptRoutes: []string{"/healthz", "/readyz"},
+	})
+
 	// Server
-	srv := command.NewServer(cfg.App.ListenAddr(), r, cfg.App.GetShutdownTimeout(), l)
+	srv := command.NewServer(cfg.App.ListenAddr(), wrappedRouter, cfg.App.GetShutdownTimeout(), l)
 
 	return &application{
 		server: srv,

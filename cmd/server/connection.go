@@ -24,9 +24,9 @@ type connections struct {
 	keycloakUC     *usecase.KeycloakUseCase
 	authKeycloakUC *usecase.AuthKeycloakUseCase
 	tokenVerifier  usecase.TokenVerifier
+	otpUseCase     usecase.OTPUseCase
 	kafkaService   *pkgkafka.KafkaService
 	cacheAdapter   pkgredis.CachePort
-	otpUseCase     usecase.OTPUseCase
 }
 
 func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger logging.Logger) (*connections, error) {
@@ -48,20 +48,17 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	logger.Info("database migrations applied")
 
 	// Redis
-	var cacheService pkgredis.CachePort
-	redisCfg := pkgredis.Config{
+	adapter, err := pkgredis.NewAdapter(pkgredis.Config{
 		Addrs:       []string{fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)},
 		Password:    cfg.Redis.Pass,
 		DB:          cfg.Redis.Database,
 		PoolSize:    cfg.Redis.PoolSize,
 		DialTimeout: 5 * time.Second,
-	}
-	adapter, err := pkgredis.NewAdapter(redisCfg)
+	})
 	if err != nil {
 		logger.Warn("failed to connect to Redis, OTP features will be disabled", logging.Any("error", err.Error()))
 	} else {
 		conn.cacheAdapter = adapter
-		cacheService = adapter
 		health.AddCheck(func(ctx context.Context) error {
 			return adapter.Ping(ctx)
 		})
@@ -69,18 +66,15 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	}
 
 	// Kafka
-	var kafkaProducer pkgkafka.Producer
-	kafkaCfg := pkgkafka.Config{
+	kafkaSvc, err := pkgkafka.NewKafkaService(&pkgkafka.Config{
 		Brokers:          cfg.Kafka.GetBrokers(),
 		ClientID:         cfg.Kafka.ClientID,
 		ProducerOnlyMode: true,
-	}
-	kafkaSvc, err := pkgkafka.NewKafkaService(&kafkaCfg)
+	})
 	if err != nil {
 		logger.Warn("failed to initialize Kafka, events will be disabled", logging.Any("error", err.Error()))
 	} else {
 		conn.kafkaService = kafkaSvc
-		kafkaProducer = kafkaSvc
 		health.AddCheck(func(ctx context.Context) error {
 			return kafkaSvc.Ping(ctx)
 		})
@@ -99,7 +93,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		FrontendCallbackURL: cfg.Keycloak.FrontendCallbackURL,
 	}
 	conn.keycloakUC = usecase.NewKeycloakUseCase(keycloakCfg, logger)
-	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, kafkaProducer, cacheService)
+	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, conn.kafkaService, conn.cacheAdapter)
 
 	// OIDC token verifier
 	issuerURL := cfg.Keycloak.BaseURL + "/realms/" + cfg.Keycloak.Realm
@@ -115,8 +109,8 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 	}
 
 	// OTP
-	otpService := auth.NewOTPService(cacheService)
-	resetTokenService := auth.NewResetTokenService(cacheService)
+	otpService := auth.NewOTPService(conn.cacheAdapter)
+	resetTokenService := auth.NewResetTokenService(conn.cacheAdapter)
 	emailService := email.NewEmailService(&email.EmailConfig{
 		SMTPHost:     cfg.Email.SMTP.Host,
 		SMTPPort:     strconv.Itoa(cfg.Email.SMTP.Port),
@@ -131,7 +125,7 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		resetTokenService,
 		emailService,
 		conn.authKeycloakUC,
-		cacheService,
+		conn.cacheAdapter,
 	)
 	logger.Info("OTP service initialized")
 	return conn, nil

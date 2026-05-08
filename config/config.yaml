@@ -41,7 +41,7 @@ keycloak:
   base_url: http://localhost:8180
   realm: modami
   client_id: modami-auth
-  client_secret: ""
+  client_secret: "1AhtshdfmYF0WVMErWmTzfiLcYCpJ3cR"
   admin_user: admin
   admin_pass: admin
   redirect_url: http://localhost:8085/v1/auth/callback

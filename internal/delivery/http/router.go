@@ -9,19 +9,17 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	logging "gitlab.com/lifegoeson-libs/pkg-logging"
 
 	_ "be-modami-auth-service/docs"
 )
 
 type RouterDeps struct {
-	Health   *handler.Health
-	Auth     *handler.Auth
-	User     *handler.User
-	Role     *handler.Role
-	OTP      *handler.OTPHandler
-	Verifier usecase.TokenVerifier
-	Logger   logging.Logger
+	Health           *handler.Health
+	Auth             *handler.Auth
+	User             *handler.User
+	Role             *handler.Role
+	OTP              *handler.OTPHandler
+	Verifier         usecase.TokenVerifier
 	AllowedOrigins   []string
 	AllowCredentials bool
 }
@@ -31,7 +29,6 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 
 	r := gin.New()
 	r.Use(middleware.RequestID())
-	r.Use(middleware.ZapLogger(deps.Logger))
 	r.Use(gin.Recovery())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     deps.AllowedOrigins,
