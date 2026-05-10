@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"be-modami-auth-service/config"
+	"be-modami-auth-service/internal/consumer"
 	"be-modami-auth-service/internal/delivery/http/handler"
 	"be-modami-auth-service/internal/usecase"
 	"be-modami-auth-service/migrations"
@@ -28,6 +29,7 @@ type connections struct {
 	otpUseCase     usecase.OTPUseCase
 	kafkaService   *pkgkafka.KafkaService
 	cacheAdapter   pkgredis.CachePort
+	cdcConsumer    *consumer.UserCDCConsumer
 }
 
 func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger logging.Logger) (*connections, error) {
@@ -92,19 +94,24 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		logger.Info("Kafka connected", logging.Any("brokers", cfg.Kafka.GetBrokers()))
 	}
 
-	// Keycloak
-	keycloakCfg := usecase.KeycloakConfig{
-		BaseURL:             cfg.Keycloak.BaseURL,
-		Realm:               cfg.Keycloak.Realm,
-		ClientID:            cfg.Keycloak.ClientID,
-		ClientSecret:        cfg.Keycloak.ClientSecret,
-		AdminUser:           cfg.Keycloak.AdminUser,
-		AdminPass:           cfg.Keycloak.AdminPass,
-		RedirectURL:         cfg.Keycloak.RedirectURL,
-		FrontendCallbackURL: cfg.Keycloak.FrontendCallbackURL,
+	// CDC consumer — reads Debezium user_entity changes and re-emits app events.
+	cdcConsumer, err := consumer.NewUserCDCConsumer(
+		cfg.Kafka.GetBrokers(),
+		cfg.Kafka.ConsumerGroupID+"-cdc",
+		conn.kafkaService,
+		cfg.App.Environment,
+		logger,
+	)
+	if err != nil {
+		logger.Warn("failed to initialize CDC consumer, CDC events will be disabled", logging.Any("error", err.Error()))
+	} else {
+		conn.cdcConsumer = cdcConsumer
+		conn.cdcConsumer.Start()
+		logger.Info("CDC consumer started", logging.String("group", cfg.Kafka.ConsumerGroupID+"-cdc"))
 	}
-	conn.keycloakUC = usecase.NewKeycloakUseCase(keycloakCfg, logger)
-	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(keycloakCfg, conn.keycloakUC, logger, conn.kafkaService, conn.cacheAdapter)
+
+	conn.keycloakUC = usecase.NewKeycloakUseCase(cfg, logger)
+	conn.authKeycloakUC = usecase.NewAuthKeycloakUseCase(cfg, conn.keycloakUC, logger, conn.kafkaService, conn.cacheAdapter)
 
 	// OIDC token verifier
 	issuerURL := cfg.Keycloak.BaseURL + "/realms/" + cfg.Keycloak.Realm
@@ -137,11 +144,14 @@ func initConnections(ctx context.Context, cfg *config.Config, health *handler.He
 		conn.cacheAdapter,
 	)
 	logger.Info("OTP service initialized")
-	
+
 	return conn, nil
 }
 
 func (c *connections) Close() {
+	if c.cdcConsumer != nil {
+		c.cdcConsumer.Close()
+	}
 	if c.dbPool != nil {
 		c.dbPool.Close()
 	}

@@ -40,8 +40,8 @@ redis:
 keycloak:
   base_url: http://localhost:8180
   realm: modami
-  client_id: modami-auth
-  client_secret: "1AhtshdfmYF0WVMErWmTzfiLcYCpJ3cR"
+  client_id: modami-api
+  client_secret: "hxQZlhx1ORAXnmA3S5YnhQ7S9bGTyvPy"
   admin_user: admin
   admin_pass: admin
   redirect_url: http://localhost:8085/v1/auth/callback
@@ -67,5 +67,5 @@ observability:
   service_version: 1.0.0
   environment: local
   log_level: info
-  otlp_endpoint: localhost:4317
+  otlp_endpoint: ""
   otlp_insecure: true

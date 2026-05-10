@@ -1,0 +1,24 @@
+{
+  "name": "keycloak-user-cdc",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres_password",
+    "database.dbname": "be-modami-auth-service",
+    "topic.prefix": "keycloak-cdc",
+    "table.include.list": "public.user_entity",
+    "plugin.name": "pgoutput",
+    "publication.name": "keycloak_user_pub",
+    "slot.name": "keycloak_user_slot",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+    "decimal.handling.mode": "string",
+    "snapshot.mode": "initial",
+    "heartbeat.interval.ms": "30000",
+    "tombstones.on.delete": "true"
+  }
+}

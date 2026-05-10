@@ -1,4 +1,4 @@
-.PHONY: build run dev test lint migrate-up migrate-down sqlc-generate swagger docker-up docker-down clean
+.PHONY: build run dev test lint migrate-up migrate-down sqlc-generate swagger docker-up docker-down clean debezium-register debezium-status debezium-delete
 
 # Variables
 BINARY=bin/server
@@ -60,6 +60,18 @@ docker-down:
 ## Stop all services and remove volumes
 docker-clean:
 	docker compose down -v
+
+## Register the Debezium CDC connector (waits for Connect to be healthy)
+debezium-register:
+	./deploy/debezium/register-connector.sh
+
+## Show current Debezium connector status
+debezium-status:
+	curl -s http://localhost:8083/connectors/keycloak-user-cdc/status | jq .
+
+## Delete the Debezium connector (resets CDC replication slot)
+debezium-delete:
+	curl -s -X DELETE http://localhost:8083/connectors/keycloak-user-cdc
 
 ## Tidy go modules
 tidy:

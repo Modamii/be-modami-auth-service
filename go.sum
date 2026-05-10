@@ -229,8 +229,6 @@ github.com/ugorji/go/codec v1.3.1/go.mod h1:pRBVtBSKl77K30Bv8R2P+cLSGaTtex6fsA2W
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/zeebo/xxh3 v1.0.2 h1:xZmwmqxHZA8AI603jOQ0tMqmBr9lPeFwGg6d+xy9DC0=
 github.com/zeebo/xxh3 v1.0.2/go.mod h1:5NWz9Sef7zIDm2JHfFlcQvNekmcEl9ekUZQQKCYaDcA=
-gitlab.com/lifegoeson-libs/pkg-gokit v1.0.0 h1:NViKQKTI8y+Q2GixeyqnRcTqDSLbR/AqkyU+PYPhH3Q=
-gitlab.com/lifegoeson-libs/pkg-gokit v1.0.0/go.mod h1:HBJvzwsGc3ZILgyY8Q5/ceLNFuCeYBVPOCf5aAcw8Nw=
 gitlab.com/lifegoeson-libs/pkg-gokit v1.0.1 h1:q9kLOs0+hwdhajDH64sdOqQ3RFpeGeGZPAvF+pK9ugg=
 gitlab.com/lifegoeson-libs/pkg-gokit v1.0.1/go.mod h1:t46ddiITozrNasGiuP+BWIItJKTQLfQr7J++rAR6Y6I=
 gitlab.com/lifegoeson-libs/pkg-logging v1.0.4 h1:Wk9vqQJTV8iw7ItTKKWToBfl+ovHLFKREw+fehhkaPc=

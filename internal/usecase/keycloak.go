@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"be-modami-auth-service/config"
 	"be-modami-auth-service/internal/entity"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -25,7 +26,7 @@ type KeycloakConfig struct {
 
 type KeycloakUseCase struct {
 	client *gocloak.GoCloak
-	cfg    KeycloakConfig
+	cfg    *config.Config
 	logger logging.Logger
 
 	mu          sync.Mutex
@@ -33,8 +34,8 @@ type KeycloakUseCase struct {
 	tokenExpiry time.Time
 }
 
-func NewKeycloakUseCase(cfg KeycloakConfig, logger logging.Logger) *KeycloakUseCase {
-	client := gocloak.NewClient(cfg.BaseURL)
+func NewKeycloakUseCase(cfg *config.Config, logger logging.Logger) *KeycloakUseCase {
+	client := gocloak.NewClient(cfg.Keycloak.BaseURL)
 	return &KeycloakUseCase{
 		client: client,
 		cfg:    cfg,
@@ -50,7 +51,7 @@ func (uc *KeycloakUseCase) getAdminToken(ctx context.Context) (string, error) {
 		return uc.cachedToken, nil
 	}
 
-	token, err := uc.client.LoginAdmin(ctx, uc.cfg.AdminUser, uc.cfg.AdminPass, "master")
+	token, err := uc.client.LoginAdmin(ctx, uc.cfg.Keycloak.AdminUser, uc.cfg.Keycloak.AdminPass, "master")
 	if err != nil {
 		return "", fmt.Errorf("keycloak admin login: %w", err)
 	}
@@ -66,7 +67,7 @@ func (uc *KeycloakUseCase) GetUsers(ctx context.Context, first, max int) ([]*ent
 		return nil, err
 	}
 
-	users, err := uc.client.GetUsers(ctx, token, uc.cfg.Realm, gocloak.GetUsersParams{
+	users, err := uc.client.GetUsers(ctx, token, uc.cfg.Keycloak.Realm, gocloak.GetUsersParams{
 		First: &first,
 		Max:   &max,
 	})
@@ -87,7 +88,7 @@ func (uc *KeycloakUseCase) GetUserByID(ctx context.Context, userID string) (*ent
 		return nil, err
 	}
 
-	u, err := uc.client.GetUserByID(ctx, token, uc.cfg.Realm, userID)
+	u, err := uc.client.GetUserByID(ctx, token, uc.cfg.Keycloak.Realm, userID)
 	if err != nil {
 		return nil, fmt.Errorf("get user by id: %w", err)
 	}
@@ -100,7 +101,7 @@ func (uc *KeycloakUseCase) GetRealmRoles(ctx context.Context) ([]*gocloak.Role, 
 		return nil, err
 	}
 
-	roles, err := uc.client.GetRealmRoles(ctx, token, uc.cfg.Realm, gocloak.GetRoleParams{})
+	roles, err := uc.client.GetRealmRoles(ctx, token, uc.cfg.Keycloak.Realm, gocloak.GetRoleParams{})
 	if err != nil {
 		return nil, fmt.Errorf("get realm roles: %w", err)
 	}
@@ -113,7 +114,7 @@ func (uc *KeycloakUseCase) GetUserRealmRoles(ctx context.Context, userID string)
 		return nil, err
 	}
 
-	roles, err := uc.client.GetRealmRolesByUserID(ctx, token, uc.cfg.Realm, userID)
+	roles, err := uc.client.GetRealmRolesByUserID(ctx, token, uc.cfg.Keycloak.Realm, userID)
 	if err != nil {
 		return nil, fmt.Errorf("get user realm roles: %w", err)
 	}
@@ -126,7 +127,7 @@ func (uc *KeycloakUseCase) AssignRealmRoles(ctx context.Context, userID string, 
 		return err
 	}
 
-	if err := uc.client.AddRealmRoleToUser(ctx, token, uc.cfg.Realm, userID, roles); err != nil {
+	if err := uc.client.AddRealmRoleToUser(ctx, token, uc.cfg.Keycloak.Realm, userID, roles); err != nil {
 		return fmt.Errorf("assign realm roles: %w", err)
 	}
 	return nil
@@ -138,7 +139,7 @@ func (uc *KeycloakUseCase) RemoveRealmRoles(ctx context.Context, userID string, 
 		return err
 	}
 
-	if err := uc.client.DeleteRealmRoleFromUser(ctx, token, uc.cfg.Realm, userID, roles); err != nil {
+	if err := uc.client.DeleteRealmRoleFromUser(ctx, token, uc.cfg.Keycloak.Realm, userID, roles); err != nil {
 		return fmt.Errorf("remove realm roles: %w", err)
 	}
 	return nil
