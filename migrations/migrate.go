@@ -4,11 +4,9 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
 
 //go:embed *.sql
@@ -19,22 +17,13 @@ var migrationFiles embed.FS
 func RunMigrations(pool *pgxpool.Pool) error {
 	db := stdlib.OpenDBFromPool(pool)
 
-	src, err := iofs.New(migrationFiles, ".")
-	if err != nil {
-		return fmt.Errorf("migration source: %w", err)
+	goose.SetBaseFS(migrationFiles)
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		return fmt.Errorf("migration dialect: %w", err)
 	}
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		return fmt.Errorf("migration driver: %w", err)
-	}
-
-	m, err := migrate.NewWithInstance("iofs", src, "postgres", driver)
-	if err != nil {
-		return fmt.Errorf("migration init: %w", err)
-	}
-
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := goose.Up(db, "."); err != nil {
 		return fmt.Errorf("migration up: %w", err)
 	}
 
