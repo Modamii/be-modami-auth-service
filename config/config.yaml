@@ -40,8 +40,8 @@ redis:
 keycloak:
   base_url: http://localhost:8180
   realm: modami
-  client_id: modami-api
-  client_secret: "hxQZlhx1ORAXnmA3S5YnhQ7S9bGTyvPy"
+  client_id: modami-auth
+  client_secret: "1AhtshdfmYF0WVMErWmTzfiLcYCpJ3cR"
   admin_user: admin
   admin_pass: admin
   redirect_url: http://localhost:8085/v1/auth/callback
