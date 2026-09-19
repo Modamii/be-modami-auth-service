@@ -35,7 +35,7 @@ type connections struct {
 func initConnections(ctx context.Context, cfg *config.Config, health *handler.Health, logger logging.Logger) (*connections, error) {
 	conn := &connections{}
 
-	// Database
+	// Database``
 	pool, _, err := pkgpostgres.Connect(ctx, pkgpostgres.Config{
 		Host:           cfg.Postgres.Host,
 		Port:           cfg.Postgres.Port,
