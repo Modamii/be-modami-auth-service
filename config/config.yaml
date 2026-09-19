@@ -55,12 +55,18 @@ kafka:
 
 email:
   smtp:
-    host: ""
+    host: "smtp.gmail.com"
     port: 587
+    # Real values injected via EMAIL_SMTP_USERNAME / EMAIL_SMTP_PASSWORD env
+    # vars (viper.AutomaticEnv, see config.go) — never commit them here.
     username: ""
     password: ""
-    from_email: noreply@modami.com
-    from_name: Modami
+    from_email: "noreply@modami.com"
+    from_name: "Modami"
+  templates:
+    welcome: "./templates/email/welcome.html"
+    password_reset: "./templates/email/password_reset.html"
+    verification: "./templates/email/verification.html"
 
 observability:
   service_name: auth-service
@@ -69,3 +75,4 @@ observability:
   log_level: info
   otlp_endpoint: ""
   otlp_insecure: true
+

@@ -1,10 +1,11 @@
 {
-  "token_hmac_secret_key": "${CENTRIFUGO_HMAC_SECRET}",
-  "api_key": "${CENTRIFUGO_API_KEY}",
+  "granular_proxy_mode": true,
+  "token_hmac_secret_key": "local-dev-token-secret",
+  "api_key": "centrifugo-api-key",
   "admin": true,
-  "admin_password": "${CENTRIFUGO_ADMIN_PASSWORD}",
-  "admin_secret": "${CENTRIFUGO_ADMIN_SECRET}",
-  "allowed_origins": ["http://localhost:3000", "http://localhost:5173"],
+  "admin_password": "admin-password",
+  "admin_secret": "admin-secret",
+  "allowed_origins": ["http://localhost:3000", "http://localhost:5173", "*"],
   "client_channel_limit": 128,
   "log_level": "debug",
 
@@ -18,6 +19,16 @@
       "name": "chat-publish",
       "endpoint": "http://host.docker.internal:8090/centrifugo/proxy/publish",
       "timeout": "3s"
+    },
+    {
+      "name": "noti-subscribe",
+      "endpoint": "http://host.docker.internal:7072/centrifugo/subscribe",
+      "timeout": "3s"
+    },
+    {
+      "name": "noti-publish",
+      "endpoint": "http://host.docker.internal:7072/centrifugo/publish",
+      "timeout": "3s"
     }
   ],
 
@@ -29,10 +40,21 @@
       "history_size": 100,
       "history_ttl": "24h",
       "force_recovery": true,
-      "subscribe_proxy_enabled": true,
+      "proxy_subscribe": true,
       "subscribe_proxy_name": "chat-subscribe",
-      "publish_proxy_enabled": true,
+      "proxy_publish": true,
       "publish_proxy_name": "chat-publish"
+    },
+    {
+      "name": "noti",
+      "presence": false,
+      "history_size": 20,
+      "history_ttl": "168h",
+      "force_recovery": true,
+      "proxy_subscribe": true,
+      "subscribe_proxy_name": "noti-subscribe",
+      "proxy_publish": true,
+      "publish_proxy_name": "noti-publish"
     }
   ]
 }

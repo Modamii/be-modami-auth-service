@@ -15,11 +15,19 @@ processors:
     check_interval: 1s
     limit_mib: 256
 
+
 exporters:
   elasticsearch:
     endpoints: ["http://elasticsearch:9200"]
     logs_index: modami-auth-logs
     traces_index: modami-auth-traces
+
+  datadog:
+    api:
+      site: datadoghq.com
+      # Real value injected via the DD_API_KEY env var at container start —
+      # never commit it here (OTel Collector's confmap resolver expands this).
+      key: ${env:DD_API_KEY}
 
   debug:
     verbosity: basic
@@ -36,12 +44,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [elasticsearch, debug]
+      exporters: [elasticsearch, datadog, debug]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [elasticsearch, debug]
+      exporters: [elasticsearch, datadog, debug]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug]
+      exporters: [datadog, debug]
