@@ -46,6 +46,9 @@ keycloak:
   admin_pass: admin
   redirect_url: http://localhost:8085/v1/auth/callback
   frontend_callback_url: http://localhost:5173/auth/callback
+  allowed_frontend_callbacks:
+    - http://localhost:5173/auth/callback
+    - http://localhost:3000/auth/callback
 
 kafka:
   enable: true
