@@ -158,15 +158,31 @@ var allowedProviders = map[string]bool{
 	"github":   true,
 }
 
-func (uc *AuthKeycloakUseCase) SocialLoginURL(ctx context.Context, provider string) (*entity.SocialLoginResponse, error) {
+func isAllowedFrontendCallback(allowed []string, redirectURI string) bool {
+	for _, a := range allowed {
+		if a == redirectURI {
+			return true
+		}
+	}
+	return false
+}
+
+func (uc *AuthKeycloakUseCase) SocialLoginURL(ctx context.Context, provider, redirectURI string) (*entity.SocialLoginResponse, error) {
 	if !allowedProviders[provider] {
 		return nil, apperror.New(apperror.CodeBadRequest, "nhà cung cấp không được hỗ trợ: "+provider)
+	}
+
+	if redirectURI != "" && !isAllowedFrontendCallback(uc.cfg.Keycloak.AllowedFrontendCallbacks, redirectURI) {
+		return nil, apperror.New(apperror.CodeBadRequest, "redirect_uri không được phép")
 	}
 
 	// Generate CSRF state and store in Redis
 	state := uuid.NewString()
 	stateData := map[string]string{
 		"provider": provider,
+	}
+	if redirectURI != "" {
+		stateData["redirect_uri"] = redirectURI
 	}
 	if uc.cache != nil {
 		if err := uc.cache.SetJSON(ctx, "social:state:"+state, stateData, 10*time.Minute); err != nil {
@@ -188,19 +204,24 @@ func (uc *AuthKeycloakUseCase) SocialLoginURL(ctx context.Context, provider stri
 	return &entity.SocialLoginResponse{AuthURL: authURL}, nil
 }
 
-func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state string) (*entity.LoginResponse, error) {
+func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state string) (*entity.LoginResponse, string, error) {
 	// Validate CSRF state
 	if state == "" {
-		return nil, apperror.New(apperror.CodeBadRequest, "thiếu tham số state")
+		return nil, "", apperror.New(apperror.CodeBadRequest, "thiếu tham số state")
 	}
 	var stateData map[string]string
 	if uc.cache != nil {
 		if err := uc.cache.GetJSON(ctx, "social:state:"+state, &stateData); err != nil {
 			uc.logger.Debug("invalid or expired social login state", logging.String("state", state))
-			return nil, apperror.New(apperror.CodeBadRequest, "tham số state không hợp lệ hoặc đã hết hạn")
+			return nil, "", apperror.New(apperror.CodeBadRequest, "tham số state không hợp lệ hoặc đã hết hạn")
 		}
 		// Delete state immediately (one-time use)
 		_ = uc.cache.Delete(ctx, "social:state:"+state)
+	}
+
+	frontendURL := uc.cfg.Keycloak.FrontendCallbackURL
+	if ru := stateData["redirect_uri"]; ru != "" {
+		frontendURL = ru
 	}
 
 	tokenURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", uc.cfg.Keycloak.BaseURL, uc.cfg.Keycloak.Realm)
@@ -216,18 +237,18 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state str
 	resp, err := http.Post(tokenURL, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
 	if err != nil {
 		uc.logger.Error("failed to exchange code", err)
-		return nil, apperror.New(apperror.CodeBadGateway, "không thể kết nối đến dịch vụ xác thực").WithError(err)
+		return nil, "", apperror.New(apperror.CodeBadGateway, "không thể kết nối đến dịch vụ xác thực").WithError(err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, apperror.New(apperror.CodeBadGateway, "không thể đọc phản hồi từ dịch vụ xác thực").WithError(err)
+		return nil, "", apperror.New(apperror.CodeBadGateway, "không thể đọc phản hồi từ dịch vụ xác thực").WithError(err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		uc.logger.Debug("code exchange failed", logging.Int("status", resp.StatusCode), logging.String("body", string(body)))
-		return nil, apperror.New(apperror.CodeUnauthorized, "mã xác thực không hợp lệ hoặc đã hết hạn")
+		return nil, "", apperror.New(apperror.CodeUnauthorized, "mã xác thực không hợp lệ hoặc đã hết hạn")
 	}
 
 	var tokenResp struct {
@@ -237,7 +258,7 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state str
 		TokenType    string `json:"token_type"`
 	}
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return nil, apperror.New(apperror.CodeBadGateway, "không thể phân tích phản hồi từ dịch vụ xác thực").WithError(err)
+		return nil, "", apperror.New(apperror.CodeBadGateway, "không thể phân tích phản hồi từ dịch vụ xác thực").WithError(err)
 	}
 
 	if uc.producer != nil && stateData != nil {
@@ -252,7 +273,7 @@ func (uc *AuthKeycloakUseCase) ExchangeCode(ctx context.Context, code, state str
 		RefreshToken: tokenResp.RefreshToken,
 		ExpiresIn:    tokenResp.ExpiresIn,
 		TokenType:    tokenResp.TokenType,
-	}, nil
+	}, frontendURL, nil
 }
 
 // GetFrontendCallbackURL returns the configured frontend callback URL.

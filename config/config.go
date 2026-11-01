@@ -9,13 +9,13 @@ import (
 )
 
 type Config struct {
-	App      AppConfig      `mapstructure:"app"`
-	Postgres PostgresConfig `mapstructure:"postgres"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	Keycloak KeycloakConfig `mapstructure:"keycloak"`
+	App           AppConfig           `mapstructure:"app"`
+	Postgres      PostgresConfig      `mapstructure:"postgres"`
+	Redis         RedisConfig         `mapstructure:"redis"`
+	Keycloak      KeycloakConfig      `mapstructure:"keycloak"`
 	Observability ObservabilityConfig `mapstructure:"observability"`
-	Kafka    KafkaConfig    `mapstructure:"kafka"`
-	Email    EmailConfig    `mapstructure:"email"`
+	Kafka         KafkaConfig         `mapstructure:"kafka"`
+	Email         EmailConfig         `mapstructure:"email"`
 }
 
 type AppConfig struct {
@@ -153,14 +153,15 @@ func (k KafkaConfig) GetBrokers() []string {
 }
 
 type KeycloakConfig struct {
-	BaseURL                string `mapstructure:"base_url"`
-	Realm                  string `mapstructure:"realm"`
-	ClientID               string `mapstructure:"client_id"`
-	ClientSecret           string `mapstructure:"client_secret"`
-	AdminUser              string `mapstructure:"admin_user"`
-	AdminPass              string `mapstructure:"admin_pass"`
-	RedirectURL            string `mapstructure:"redirect_url"`
-	FrontendCallbackURL    string `mapstructure:"frontend_callback_url"`
+	BaseURL                  string   `mapstructure:"base_url"`
+	Realm                    string   `mapstructure:"realm"`
+	ClientID                 string   `mapstructure:"client_id"`
+	ClientSecret             string   `mapstructure:"client_secret"`
+	AdminUser                string   `mapstructure:"admin_user"`
+	AdminPass                string   `mapstructure:"admin_pass"`
+	RedirectURL              string   `mapstructure:"redirect_url"`
+	FrontendCallbackURL      string   `mapstructure:"frontend_callback_url"`
+	AllowedFrontendCallbacks []string `mapstructure:"allowed_frontend_callbacks"`
 }
 
 type EmailConfig struct {

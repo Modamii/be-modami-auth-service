@@ -167,7 +167,8 @@ func (h *Auth) SocialLogin(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.authUC.SocialLoginURL(c.Request.Context(), provider)
+	redirectURI := c.Query("redirect_uri")
+	resp, err := h.authUC.SocialLoginURL(c.Request.Context(), provider, redirectURI)
 	if err != nil {
 		utils.RespondError(c, err)
 		return
@@ -193,14 +194,13 @@ func (h *Auth) SocialCallback(c *gin.Context) {
 	}
 	state := c.Query("state")
 
-	resp, err := h.authUC.ExchangeCode(c.Request.Context(), code, state)
+	resp, frontendURL, err := h.authUC.ExchangeCode(c.Request.Context(), code, state)
 	if err != nil {
 		utils.RespondError(c, err)
 		return
 	}
 
 	// Redirect to frontend with tokens in URL fragment (not query params for security)
-	frontendURL := h.authUC.GetFrontendCallbackURL()
 	if frontendURL != "" {
 		fragment := fmt.Sprintf("access_token=%s&refresh_token=%s&expires_in=%d&token_type=%s",
 			url.QueryEscape(resp.AccessToken),
@@ -247,7 +247,6 @@ func (h *Auth) ChangePassword(c *gin.Context) {
 
 	utils.RespondNoContent(c)
 }
-
 
 func (h *Auth) UpdateProfile(c *gin.Context) {
 	claims, ok := ctxutil.GetClaims(c)
